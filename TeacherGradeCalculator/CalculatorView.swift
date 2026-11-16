@@ -9,6 +9,7 @@ struct CalculatorView: View {
     @AppStorage("calculatorTheme") private var theme = "system"
     @State private var calculation = GradeCalculation()
     @State private var showingCopied = false
+    @State private var collapsedCards: Set<String> = []
 
     private var isDark: Bool { theme == "dark" || (theme == "system" && colorScheme == .dark) }
     private var accent: Color {
@@ -30,8 +31,7 @@ struct CalculatorView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 header
-                card {
-                    sectionTitle(text("Examen", "Exam"), icon: "pencil.and.list.clipboard")
+                card("exam", title: text("Examen", "Exam"), icon: "pencil.and.list.clipboard") {
                     Toggle(text("Incluir en la evaluación", "Include in evaluation"), isOn: $calculation.examEnabled)
                     countSlider(text("Total de preguntas del examen", "Total exam questions"),
                                 value: $calculation.questionCount, range: 1...100)
@@ -53,8 +53,7 @@ struct CalculatorView: View {
                     }
                     gradeRow(text("Calificación del examen", "Exam grade"), grade: calculation.examGrade)
                 }
-                card {
-                    sectionTitle(text("Trabajos del libro", "Book assignments"), icon: "book.closed")
+                card("book", title: text("Trabajos del libro", "Book assignments"), icon: "book.closed") {
                     Toggle(text("Incluir en la evaluación", "Include in evaluation"), isOn: $calculation.bookEnabled)
                     countSlider(text("Total de trabajos asignados", "Total assigned work"),
                                 value: $calculation.assignmentCount, range: 1...50)
@@ -72,8 +71,8 @@ struct CalculatorView: View {
                 }
                 .tint(bookAccent)
                 ForEach($calculation.categories) { $category in
-                    card {
-                        Toggle(text(category.spanish, category.english), isOn: $category.enabled)
+                    card(category.id, title: text(category.spanish, category.english), icon: "checklist") {
+                        Toggle(text("Incluir en la evaluación", "Include in evaluation"), isOn: $category.enabled)
                             .font(.headline)
                         VStack(alignment: .leading) {
                             Text(text("Calificación (0–10)", "Grade (0–10)"))
@@ -163,8 +162,7 @@ struct CalculatorView: View {
     }
 
     private var weightsCard: some View {
-        card {
-            sectionTitle(text("Porcentaje de evaluación", "Evaluation weights"), icon: "slider.horizontal.3")
+        card("weights", title: text("Porcentaje de evaluación", "Evaluation weights"), icon: "slider.horizontal.3") {
             Text(text("Examen: ", "Exam: ") + "\(calculation.examWeight)")
             Slider(value: integerBinding($calculation.examWeight), in: 0...100, step: 1)
                 .disabled(!calculation.examEnabled)
@@ -179,6 +177,7 @@ struct CalculatorView: View {
     }
 
     private var finalCard: some View {
+        card("final", title: text("Calificación final", "Final grade"), icon: "number") {
         VStack(spacing: 8) {
             HStack {
                 Text(text("Calificación final mínima", "Minimum final grade"))
@@ -190,7 +189,6 @@ struct CalculatorView: View {
                 Text(text("Activa una categoría con peso mayor que 0 para calcular.", "Enable a category with a weight above 0 to calculate."))
                     .font(.footnote)
             }
-            Text(text("Calificación final", "Final grade")).font(.headline)
             Text(formatted(calculation.finalGrade))
                 .id(calculation.finalGrade)
                 .transition(reduceMotion ? .identity : .opacity.combined(with: .offset(y: 3)))
@@ -217,6 +215,7 @@ struct CalculatorView: View {
         }
         .accessibilityElement(children: .combine)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: calculation.finalGrade)
+        }
     }
 
     private var actions: some View {
@@ -312,11 +311,33 @@ struct CalculatorView: View {
         Label(title, systemImage: icon).font(.headline).accessibilityAddTraits(.isHeader)
     }
 
-    private func card<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 20, content: content)
-            .padding(20)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background { glassSurface }
+    private func card<Content: View>(
+        _ id: String, title: String, icon: String, @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 20) {
+            HStack(alignment: .top) {
+                sectionTitle(title, icon: icon)
+                Spacer(minLength: 8)
+                Button {
+                    withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+                        if collapsedCards.contains(id) { collapsedCards.remove(id) }
+                        else { collapsedCards.insert(id) }
+                    }
+                } label: {
+                    Image(systemName: collapsedCards.contains(id) ? "plus" : "minus")
+                        .font(.system(size: 16, weight: .medium))
+                        .frame(width: 44, height: 44)
+                        .modifier(CalculatorGlassControl())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel((collapsedCards.contains(id) ? text("Expandir", "Expand") : text("Minimizar", "Minimize")) + ": " + title)
+                .accessibilityValue(collapsedCards.contains(id) ? text("Minimizado", "Minimized") : text("Expandido", "Expanded"))
+            }
+            if !collapsedCards.contains(id) { content() }
+        }
+        .padding(20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background { glassSurface }
     }
 
     private var glassSurface: some View {

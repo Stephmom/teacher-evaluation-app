@@ -6,7 +6,7 @@ const translations = {
     exam: 'Examen', book: 'Trabajos del libro', bookShort: 'Libro',
     questionCount: 'Total de preguntas del examen', correctAnswers: 'Aciertos obtenidos',
     minimumExamGrade: 'Calificación mínima del examen',
-    minimumFinalGrade: 'Calificación final mínima', classwork: 'Trabajo en clase', writing: 'Escritura', speaking: 'Expresión oral', listening: 'Comprensión auditiva', reading: 'Lectura',
+    collapse: 'Minimizar', expand: 'Expandir', minimumFinalGrade: 'Calificación final mínima', classwork: 'Trabajo en clase', writing: 'Escritura', speaking: 'Expresión oral', listening: 'Comprensión auditiva', reading: 'Lectura',
     include: 'Incluir en la evaluación', grade: 'Calificación (0–10)', weightHelp: 'Los pesos activos se ajustan automáticamente al 100%.', noCategories: 'Activa una categoría con peso mayor que 0 para calcular.',
     assignmentCount: 'Total de trabajos asignados', submittedAssignments: 'Trabajos entregados',
     examGrade: 'Calificación del examen', bookGrade: 'Calificación del libro',
@@ -23,7 +23,7 @@ const translations = {
     exam: 'Exam', book: 'Book assignments', bookShort: 'Book',
     questionCount: 'Total exam questions', correctAnswers: 'Correct answers',
     minimumExamGrade: 'Minimum exam grade',
-    minimumFinalGrade: 'Minimum final grade', classwork: 'Classwork', writing: 'Writing', speaking: 'Speaking', listening: 'Listening', reading: 'Reading',
+    collapse: 'Minimize', expand: 'Expand', minimumFinalGrade: 'Minimum final grade', classwork: 'Classwork', writing: 'Writing', speaking: 'Speaking', listening: 'Listening', reading: 'Reading',
     include: 'Include in evaluation', grade: 'Grade (0–10)', weightHelp: 'Active weights automatically scale to 100%.', noCategories: 'Enable a category with a weight above 0 to calculate.',
     assignmentCount: 'Total assigned work', submittedAssignments: 'Submitted assignments',
     examGrade: 'Exam grade', bookGrade: 'Book grade',
@@ -87,6 +87,41 @@ for (const key of ['exam', 'book']) {
 }
 element('weight-controls').innerHTML = categories.map(key => `<div class="weight-row"><label for="${key}Weight"><span data-i18n="${key}"></span> <strong id="${key}Weight-value"></strong></label><input id="${key}Weight" type="number" min="0" max="100" value="${defaults[`${key}Weight`]}" inputmode="numeric"></div>`).join('');
 
+// Keep the controls in the DOM so minimizing never changes an evaluation.
+document.querySelectorAll('.card').forEach(card => {
+  const heading = card.querySelector('h2');
+  const content = document.createElement('div');
+  content.className = 'card-content';
+  content.id = `${heading.id}-content`;
+  [...card.children].filter(child => child !== heading).forEach(child => content.append(child));
+  card.append(content);
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'collapse-button';
+  button.setAttribute('aria-controls', content.id);
+  button.setAttribute('aria-expanded', 'true');
+  button.textContent = '−';
+  button.addEventListener('click', () => {
+    const collapsed = !content.hidden;
+    content.hidden = collapsed;
+    card.classList.toggle('collapsed', collapsed);
+    button.setAttribute('aria-expanded', String(!collapsed));
+    button.textContent = collapsed ? '+' : '−';
+    updateCollapseLabels();
+  });
+  card.append(button);
+});
+
+function updateCollapseLabels() {
+  const t = translations[language];
+  document.querySelectorAll('.collapse-button').forEach(button => {
+    const title = button.closest('.card').querySelector('h2').textContent;
+    const label = `${button.getAttribute('aria-expanded') === 'true' ? t.collapse : t.expand}: ${title}`;
+    button.setAttribute('aria-label', label);
+    button.title = label;
+  });
+}
+
 function render() {
   state = normalize(state);
   const t = translations[language];
@@ -148,6 +183,7 @@ function render() {
     slider.style.setProperty('--fill', `${fraction * 100}%`);
   });
   element('copy-fallback').setAttribute('aria-label', t.copy);
+  updateCollapseLabels();
 }
 
 function clearStatus() {
