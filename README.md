@@ -24,4 +24,8 @@ Spanish is the default; language selection persists across launches. Reset resto
 
 The interface uses a Liquid Glass inspired appearance. Native controls use Apple's Liquid Glass when built with Xcode 26+ and running iOS 26+; older versions use SwiftUI materials. Reduced transparency uses opaque surfaces. The browser preview recreates the appearance with CSS blur, translucent layers, and glass controls, and respects reduced motion and reduced transparency preferences.
 
+Appearance follows the device's light/dark preference until you use the sun/moon button. Your explicit selection is saved independently of the language and survives reset. The web version includes gentle card entrances, slider feedback, theme transitions, and grade-change animations. Reduced Motion disables these effects; native transitions also respect that setting.
+
+Browser appearance checks are available locally at `/ui-tests.html`. Run them with both normal and reduced motion preferences to check the toggle, persistence, system defaults, translations, reset behavior, and mobile layout.
+
 Created in Linux without Xcode or Swift: the iOS build, tests, and visual verification must still run on a Mac.

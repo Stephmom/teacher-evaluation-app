@@ -10,6 +10,7 @@ const translations = {
     weights: 'Porcentaje de evaluación', examWeight: 'Porcentaje del examen',
     finalGrade: 'Calificación final', scale: 'Escala de 0 a 10',
     reset: 'Reiniciar', copy: 'Copiar resultado', copied: 'Resultado copiado',
+    darkMode: 'Modo oscuro', useDark: 'Cambiar al modo oscuro', useLight: 'Cambiar al modo claro',
     resetDone: 'Valores restablecidos', manualCopy: 'Selecciona y copia el resultado de abajo.',
     oneAssignment: '1 trabajo', fiftyAssignments: '50 trabajos',
     example: 'Ejemplo: Si asignaste 12 trabajos y un alumno entregó 9, su calificación del libro será 7.50. Si entregó los 12, obtiene 10.'
@@ -23,6 +24,7 @@ const translations = {
     weights: 'Evaluation weights', examWeight: 'Exam percentage',
     finalGrade: 'Final grade', scale: 'Scale from 0 to 10',
     reset: 'Reset', copy: 'Copy result', copied: 'Result copied',
+    darkMode: 'Dark mode', useDark: 'Switch to dark mode', useLight: 'Switch to light mode',
     resetDone: 'Values reset', manualCopy: 'Select and copy the result below.',
     oneAssignment: '1 assignment', fiftyAssignments: '50 assignments',
     example: 'Example: If you assigned 12 assignments and a student submitted 9, their book grade is 7.50. Submitting all 12 earns a 10.'
@@ -32,12 +34,40 @@ const element = id => document.getElementById(id);
 let state = { ...defaults };
 let language = 'es';
 try { if (localStorage.getItem('calculatorLanguage') === 'en') language = 'en'; } catch { /* Storage may be disabled. */ }
+const systemTheme = matchMedia('(prefers-color-scheme: dark)');
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
+let themePreference;
+try {
+  const saved = localStorage.getItem('calculatorTheme');
+  if (saved === 'light' || saved === 'dark') themePreference = saved;
+} catch { /* Follow the device theme when storage is unavailable. */ }
+
+function applyTheme() {
+  const dark = (themePreference ?? (systemTheme.matches ? 'dark' : 'light')) === 'dark';
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  document.querySelector('meta[name="theme-color"]').content = dark ? '#101623' : '#eef1fb';
+  const t = translations[language];
+  element('theme-toggle').setAttribute('aria-pressed', String(dark));
+  element('theme-toggle').setAttribute('aria-label', t.darkMode);
+  element('theme-toggle').title = dark ? t.useLight : t.useDark;
+}
+
+element('theme-toggle').addEventListener('click', () => {
+  themePreference = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem('calculatorTheme', themePreference); } catch { /* Keep this session's selection. */ }
+  applyTheme();
+});
+systemTheme.addEventListener('change', applyTheme);
+reducedMotion.addEventListener('change', () => {
+  if (reducedMotion.matches) document.getAnimations().forEach(animation => animation.cancel());
+});
 
 function render() {
   state = normalize(state);
   const t = translations[language];
   document.documentElement.lang = language;
   document.title = t.title;
+  applyTheme();
   document.querySelectorAll('[data-i18n]').forEach(node => { node.textContent = t[node.dataset.i18n]; });
   document.querySelectorAll('[data-label]').forEach(node => { node.setAttribute('aria-label', t[node.dataset.label]); });
   document.querySelectorAll('[data-language]').forEach(button => {
@@ -59,7 +89,18 @@ function render() {
   element('examWeight-value').textContent = `${state.examWeight}%`;
   element('bookWeight-value').textContent = `${100 - state.examWeight}%`;
   const result = grades(state);
-  for (const [key, grade] of Object.entries(result)) element(key).textContent = grade.toFixed(2);
+  for (const [key, grade] of Object.entries(result)) {
+    const output = element(key);
+    const next = grade.toFixed(2);
+    if (output.textContent !== next) {
+      output.textContent = next;
+      if (!reducedMotion.matches) {
+        output.getAnimations().forEach(animation => animation.cancel());
+        output.animate([{ opacity: 0.5, transform: 'translateY(3px)' }, { opacity: 1, transform: 'translateY(0)' }],
+          { duration: 220, easing: 'cubic-bezier(.2,.7,.3,1)' });
+      }
+    }
+  }
   document.querySelector('.result-meter').style.setProperty('--grade', `${result.finalGrade * 10}%`);
   document.querySelectorAll('input[type="range"]').forEach(slider => {
     const fraction = (Number(slider.value) - Number(slider.min)) / (Number(slider.max) - Number(slider.min));

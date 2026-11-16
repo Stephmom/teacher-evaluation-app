@@ -4,6 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#eef1fb">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (() => {
+      let preference;
+      try { preference = localStorage.getItem('calculatorTheme'); } catch { /* Storage is optional. */ }
+      const dark = preference === 'dark' || (preference !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+      document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      document.querySelector('meta[name="theme-color"]').content = dark ? '#101623' : '#eef1fb';
+    })();
+  </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Calificaciones">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -18,9 +28,15 @@
     <header>
       <div class="topbar">
         <div class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="m2 9 10-5 10 5-10 5L2 9Z"/><path d="M6 11v6c4 3 8 3 12 0v-6M22 9v7"/></svg></div>
-        <div class="languages" role="group" aria-label="Idioma / Language">
-          <button type="button" data-language="es" lang="es" aria-pressed="true">Español</button>
-          <button type="button" data-language="en" lang="en" aria-pressed="false">English</button>
+        <div class="header-controls">
+          <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Modo oscuro" aria-pressed="false" title="Cambiar al modo oscuro">
+            <svg class="moon-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"/></svg>
+            <svg class="sun-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/></svg>
+          </button>
+          <div class="languages" role="group" aria-label="Idioma / Language">
+            <button type="button" data-language="es" lang="es" aria-pressed="true">Español</button>
+            <button type="button" data-language="en" lang="en" aria-pressed="false">English</button>
+          </div>
         </div>
       </div>
       <h1 data-i18n="title">Calculadora de calificaciones</h1>

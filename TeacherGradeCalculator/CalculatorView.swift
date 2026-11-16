@@ -4,12 +4,19 @@ import UIKit
 struct CalculatorView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @AppStorage("calculatorLanguage") private var language = "es"
+    @AppStorage("calculatorTheme") private var theme = "system"
     @State private var calculation = GradeCalculation()
     @State private var showingCopied = false
 
-    private let accent = Color(red: 0.29, green: 0.39, blue: 0.81)
-    private let bookAccent = Color(red: 0.13, green: 0.50, blue: 0.52)
+    private var isDark: Bool { theme == "dark" || (theme == "system" && colorScheme == .dark) }
+    private var accent: Color {
+        isDark ? Color(red: 0.67, green: 0.73, blue: 1) : Color(red: 0.29, green: 0.39, blue: 0.81)
+    }
+    private var bookAccent: Color {
+        isDark ? Color(red: 0.52, green: 0.83, blue: 0.81) : Color(red: 0.13, green: 0.50, blue: 0.52)
+    }
 
     private func text(_ spanish: String, _ english: String) -> String {
         language == "es" ? spanish : english
@@ -76,6 +83,9 @@ struct CalculatorView: View {
             .ignoresSafeArea()
         }
         .tint(accent)
+        .preferredColorScheme(theme == "system" ? nil : (theme == "dark" ? .dark : .light))
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: theme)
+        .transaction { if reduceMotion { $0.disablesAnimations = true } }
         .environment(\.locale, Locale(identifier: language))
         .alert(text("Resultado copiado", "Result copied"), isPresented: $showingCopied) {
             Button(text("Aceptar", "OK"), role: .cancel) { }
@@ -92,6 +102,16 @@ struct CalculatorView: View {
                     .modifier(CalculatorGlassControl())
                     .accessibilityHidden(true)
                 Spacer()
+                Button {
+                    theme = isDark ? "light" : "dark"
+                } label: {
+                    Image(systemName: isDark ? "sun.max" : "moon")
+                        .font(.system(size: 19, weight: .medium))
+                        .frame(width: 44, height: 44)
+                        .modifier(CalculatorGlassControl())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(isDark ? text("Cambiar al modo claro", "Switch to light mode") : text("Cambiar al modo oscuro", "Switch to dark mode"))
                 Picker(text("Idioma", "Language"), selection: $language) {
                     Text("Español").tag("es")
                     Text("English").tag("en")
@@ -134,6 +154,8 @@ struct CalculatorView: View {
         VStack(spacing: 8) {
             Text(text("Calificación final", "Final grade")).font(.headline)
             Text(formatted(calculation.finalGrade))
+                .id(calculation.finalGrade)
+                .transition(reduceMotion ? .identity : .opacity.combined(with: .offset(y: 3)))
                 .font(.system(size: 72, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .minimumScaleFactor(0.5)
@@ -156,6 +178,7 @@ struct CalculatorView: View {
                 }
         }
         .accessibilityElement(children: .combine)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: calculation.finalGrade)
     }
 
     private var actions: some View {
@@ -196,7 +219,7 @@ struct CalculatorView: View {
                 .padding(.vertical, 15)
                 .padding(.horizontal, 12)
                 .foregroundStyle(.white)
-                .background(accent.gradient, in: Capsule())
+                .background(Color(red: 0.29, green: 0.39, blue: 0.81).gradient, in: Capsule())
                 .overlay { Capsule().strokeBorder(.white.opacity(0.4), lineWidth: 1) }
         }
     }
@@ -226,9 +249,13 @@ struct CalculatorView: View {
         VStack(alignment: .leading, spacing: 8) {
             Divider()
             Text(title).font(.subheadline).foregroundStyle(.secondary)
-            Text(formatted(grade)).font(.largeTitle.bold()).monospacedDigit().foregroundStyle(color ?? accent)
+            Text(formatted(grade))
+                .id(grade)
+                .transition(reduceMotion ? .identity : .opacity.combined(with: .offset(y: 3)))
+                .font(.largeTitle.bold()).monospacedDigit().foregroundStyle(color ?? accent)
         }
         .accessibilityElement(children: .combine)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: grade)
     }
 
     private func sectionTitle(_ title: String, icon: String) -> some View {
