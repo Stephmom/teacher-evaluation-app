@@ -1,0 +1,6 @@
+{
+  "name": "teacher-grade-calculator",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node grades.test.js" }
+}

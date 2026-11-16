@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Grade calculation checks</title>
+<pre id="results">Running…</pre>
+<script type="module">
+try {
+  await import('./grades.test.js');
+  document.getElementById('results').textContent = 'PASS: all grading checks passed.';
+} catch (error) {
+  document.getElementById('results').textContent = `FAIL: ${error.message}`;
+  throw error;
+}
+</script>
+</html>
