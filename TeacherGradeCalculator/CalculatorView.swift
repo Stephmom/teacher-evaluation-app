@@ -9,6 +9,7 @@ struct CalculatorView: View {
     @AppStorage("calculatorTheme") private var theme = "system"
     @State private var calculation = GradeCalculation()
     @State private var showingCopied = false
+    @State private var gradeAnnouncement: DispatchWorkItem?
     @State private var collapsedCards: Set<String> = []
 
     private var isDark: Bool { theme == "dark" || (theme == "system" && colorScheme == .dark) }
@@ -27,6 +28,38 @@ struct CalculatorView: View {
         String(format: "%.2f", locale: Locale(identifier: "en_US_POSIX"), grade)
     }
 
+    private var breakdown: [(id: String, title: String, score: Double, weight: Double)] {
+        var rows: [(id: String, title: String, score: Double, weight: Double)] = []
+        if calculation.examEnabled { rows.append(("exam", text("Examen", "Exam"), calculation.examGrade, Double(calculation.examWeight))) }
+        if calculation.bookEnabled { rows.append(("book", text("Libro", "Book"), calculation.bookGrade, Double(calculation.bookWeight))) }
+        rows += calculation.categories.filter(\.enabled).map {
+            ($0.id, text($0.spanish, $0.english), min(max($0.grade, 0), 10), $0.weight)
+        }
+        return rows.map { ($0.id, $0.title, $0.score, calculation.activeWeight > 0 ? $0.weight / calculation.activeWeight : 0) }
+    }
+
+    private var calculatedGrade: Double { breakdown.reduce(0) { $0 + $1.score * $1.weight } }
+    private var finalStatus: String {
+        if calculation.activeWeight == 0 { return text("Sin evaluación", "No evaluation") }
+        let minimum = min(max(calculation.minimumFinalGrade, 0), 10)
+        if minimum == 0 { return text("Sin mínimo establecido", "No minimum set") }
+        return calculatedGrade < minimum
+            ? text("Por debajo del mínimo antes del ajuste · Mínimo aplicado", "Below minimum before adjustment · Minimum applied")
+            : text("Alcanza el mínimo", "Meets minimum")
+    }
+    private var finalAnnouncement: String {
+        text("Calificación final", "Final grade") + ": " + (calculation.activeWeight > 0 ? formatted(calculation.finalGrade) + " / 10. " : "") + finalStatus
+    }
+
+    private func contribution(_ id: String) -> some View {
+        Text(breakdown.first(where: { $0.id == id }).map {
+            text("Peso activo: ", "Active weight: ") + formatted($0.weight * 100) + "% · "
+            + text("Aporta ", "Contributes ") + formatted($0.score * $0.weight) + " / 10 " + text("puntos", "points")
+        } ?? text("No se incluye", "Not included"))
+        .font(.subheadline).foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+
     var body: some View {
         ScrollViewReader { proxy in
         ScrollView {
@@ -34,6 +67,7 @@ struct CalculatorView: View {
                 header
                 card("exam", title: text("Examen", "Exam"), icon: "pencil.and.list.clipboard") {
                     Toggle(text("Incluir en la evaluación", "Include in evaluation"), isOn: $calculation.examEnabled)
+                        .frame(minHeight: 48).accessibilityLabel(text("Incluir examen", "Include exam"))
                     countSlider(text("Total de preguntas del examen", "Total exam questions"),
                                 value: $calculation.questionCount, range: 1...100)
                     countSlider(text("Aciertos obtenidos", "Correct answers"),
@@ -53,9 +87,18 @@ struct CalculatorView: View {
                             .accessibilityLabel(text("Calificación mínima del examen", "Minimum exam grade"))
                     }
                     gradeRow(text("Calificación del examen", "Exam grade"), grade: calculation.examGrade)
+                    if calculation.examEnabled && calculation.minimumExamGrade > 0 {
+                        let raw = Double(calculation.correctAnswers) / Double(max(calculation.questionCount, 1)) * 10
+                        Text(raw < calculation.minimumExamGrade
+                             ? text("Por debajo del mínimo antes del ajuste · Mínimo aplicado: ", "Below minimum before adjustment · Minimum applied: ") + formatted(calculation.examGrade)
+                             : text("Alcanza el mínimo", "Meets minimum"))
+                            .font(.subheadline)
+                    }
+                    contribution("exam")
                 }
                 card("book", title: text("Trabajos del libro", "Book assignments"), icon: "book.closed") {
                     Toggle(text("Incluir en la evaluación", "Include in evaluation"), isOn: $calculation.bookEnabled)
+                        .frame(minHeight: 48).accessibilityLabel(text("Incluir libro", "Include book"))
                     countSlider(text("Total de trabajos asignados", "Total assigned work"),
                                 value: $calculation.assignmentCount, range: 1...50)
                     HStack {
@@ -69,25 +112,31 @@ struct CalculatorView: View {
                                 value: $calculation.submittedAssignments, range: 0...calculation.assignmentCount,
                                 total: calculation.assignmentCount)
                     gradeRow(text("Calificación del libro", "Book grade"), grade: calculation.bookGrade, color: bookAccent)
+                    contribution("book")
                 }
                 .tint(bookAccent)
                 ForEach($calculation.categories) { $category in
                     card(category.id, title: text(category.spanish, category.english), icon: "checklist") {
                         Toggle(text("Incluir en la evaluación", "Include in evaluation"), isOn: $category.enabled)
-                            .font(.headline)
+                            .font(.headline).frame(minHeight: 48)
+                            .accessibilityLabel(text("Incluir: ", "Include: ") + text(category.spanish, category.english))
                         VStack(alignment: .leading) {
                             Text(text("Calificación (0–10)", "Grade (0–10)"))
                             TextField(text("Calificación", "Grade"), value: $category.grade, format: .number)
                                 .keyboardType(.decimalPad)
-                                .textFieldStyle(.roundedBorder)
+                                .textFieldStyle(.roundedBorder).frame(minHeight: 48)
+                                .accessibilityLabel(text(category.spanish, category.english) + ": " + text("Calificación", "Grade"))
                             Slider(value: $category.grade, in: 0...10, step: 0.1)
-                                .accessibilityLabel(text(category.spanish, category.english))
+                                .frame(minHeight: 48)
+                                .accessibilityLabel(text(category.spanish, category.english) + ": " + text("Calificación", "Grade"))
                             Text(text("Peso: ", "Weight: ") + String(format: "%.0f", category.weight))
                             Slider(value: $category.weight, in: 0...100, step: 1)
-                                .accessibilityLabel(text("Peso", "Weight"))
+                                .frame(minHeight: 48)
+                                .accessibilityLabel(text(category.spanish, category.english) + ": " + text("Peso relativo", "Relative weight"))
                         }
                         .disabled(!category.enabled)
                         .opacity(category.enabled ? 1 : 0.45)
+                        contribution(category.id)
                     }
                 }
                 weightsCard
@@ -148,6 +197,14 @@ struct CalculatorView: View {
         .tint(accent)
         .preferredColorScheme(theme == "system" ? nil : (theme == "dark" ? .dark : .light))
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: theme)
+        .onChange(of: finalAnnouncement) { value in
+            gradeAnnouncement?.cancel()
+            guard UIAccessibility.isVoiceOverRunning else { return }
+            let announcement = DispatchWorkItem { UIAccessibility.post(notification: .announcement, argument: value) }
+            gradeAnnouncement = announcement
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.65, execute: announcement)
+        }
+        .onDisappear { gradeAnnouncement?.cancel() }
         .transaction { if reduceMotion { $0.disablesAnimations = true } }
         .environment(\.locale, Locale(identifier: language))
         .alert(text("Resultado copiado", "Result copied"), isPresented: $showingCopied) {
@@ -171,7 +228,7 @@ struct CalculatorView: View {
                 } label: {
                     Image(systemName: isDark ? "sun.max" : "moon")
                         .font(.system(size: 19, weight: .medium))
-                        .frame(width: 44, height: 44)
+                        .frame(width: 48, height: 48)
                         .modifier(CalculatorGlassControl())
                 }
                 .buttonStyle(.plain)
@@ -194,11 +251,13 @@ struct CalculatorView: View {
 
     private var weightsCard: some View {
         card("weights", title: text("Porcentaje de evaluación", "Evaluation weights"), icon: "slider.horizontal.3") {
-            Text(text("Examen: ", "Exam: ") + "\(calculation.examWeight)")
+            Text(text("Peso relativo del examen: ", "Relative exam weight: ") + "\(calculation.examWeight)")
+            contribution("exam")
             Slider(value: integerBinding($calculation.examWeight), in: 0...100, step: 1)
                 .disabled(!calculation.examEnabled)
                 .accessibilityLabel(text("Peso del examen", "Exam weight"))
-            Text(text("Libro: ", "Book: ") + "\(calculation.bookWeight)")
+            Text(text("Peso relativo del libro: ", "Relative book weight: ") + "\(calculation.bookWeight)")
+            contribution("book")
             Slider(value: integerBinding($calculation.bookWeight), in: 0...100, step: 1)
                 .disabled(!calculation.bookEnabled)
                 .accessibilityLabel(text("Peso del libro", "Book weight"))
@@ -220,14 +279,32 @@ struct CalculatorView: View {
                 Text(text("Activa una categoría con peso mayor que 0 para calcular.", "Enable a category with a weight above 0 to calculate."))
                     .font(.footnote)
             }
-            Text(formatted(calculation.finalGrade))
+            Text(calculation.activeWeight > 0 ? formatted(calculation.finalGrade) : "—")
                 .id(calculation.finalGrade)
                 .transition(reduceMotion ? .identity : .opacity.combined(with: .offset(y: 3)))
                 .font(.system(size: 72, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .minimumScaleFactor(0.5)
                 .lineLimit(1)
+            Text(finalStatus).font(.subheadline.weight(.semibold))
             Text(text("Escala de 0 a 10", "Scale from 0 to 10")).font(.subheadline)
+            Text(text("Cómo se calcula", "How it is calculated")).font(.headline).padding(.top, 16)
+            ForEach(breakdown, id: \.id) { row in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(row.title).fontWeight(.semibold)
+                    Text(formatted(row.score) + " × " + formatted(row.weight * 100) + "% = " + formatted(row.score * row.weight))
+                        .monospacedDigit()
+                }
+                .font(.subheadline).frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityElement(children: .combine)
+            }
+            if calculation.activeWeight > 0 {
+                Text(text("Calificación calculada: ", "Calculated grade: ") + formatted(calculatedGrade) + " / 10").font(.subheadline)
+                if calculatedGrade < calculation.finalGrade {
+                    Text(text("Ajuste al mínimo: +", "Minimum adjustment: +") + formatted(calculation.finalGrade - calculatedGrade))
+                        .font(.subheadline)
+                }
+            }
             ProgressView(value: calculation.finalGrade, total: 10)
                 .tint(accent)
                 .frame(width: 96)
@@ -244,7 +321,6 @@ struct CalculatorView: View {
                         .fill(accent.opacity(0.09))
                 }
         }
-        .accessibilityElement(children: .combine)
         .animation(reduceMotion ? nil : .easeOut(duration: 0.22), value: calculation.finalGrade)
         }
     }
@@ -319,6 +395,7 @@ struct CalculatorView: View {
             Slider(value: integerBinding(value), in: Double(range.lowerBound)...Double(range.upperBound), step: 1) {
                 Text(title)
             }
+            .frame(minHeight: 48)
             .accessibilityValue(total.map {
                 "\(value.wrappedValue) \(text("de", "of")) \($0)"
             } ?? "\(value.wrappedValue)")
@@ -357,7 +434,7 @@ struct CalculatorView: View {
                 } label: {
                     Image(systemName: collapsedCards.contains(id) ? "plus" : "minus")
                         .font(.system(size: 16, weight: .medium))
-                        .frame(width: 44, height: 44)
+                        .frame(width: 48, height: 48)
                         .modifier(CalculatorGlassControl())
                 }
                 .buttonStyle(.plain)

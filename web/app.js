@@ -1,9 +1,9 @@
-import { defaults, normalize, grades, categories, extraCategories } from './grades.js?v=categories-1';
+import { defaults, normalize, grades, categories, extraCategories, contributions } from './grades.js?v=accessibility-1';
 
 const translations = {
   es: {
     title: 'Calculadora de calificaciones', subtitle: 'Primer grado · Configuración ajustable',
-    exam: 'Examen', book: 'Trabajos del libro', bookShort: 'Libro',
+    breakdown: 'Cómo se calcula', contribution: 'Aporta', points: 'puntos', activeWeight: 'Peso activo', excluded: 'No se incluye', noMinimum: 'Sin mínimo establecido', meetsMinimum: 'Alcanza el mínimo', belowMinimum: 'Por debajo del mínimo antes del ajuste', minimumApplied: 'Mínimo aplicado', calculated: 'Calificación calculada', adjustment: 'Ajuste al mínimo', weightInput: 'Peso relativo', exam: 'Examen', book: 'Trabajos del libro', bookShort: 'Libro',
     questionCount: 'Total de preguntas del examen', correctAnswers: 'Aciertos obtenidos',
     minimumExamGrade: 'Calificación mínima del examen',
     viewResult: 'Ver resultado', collapse: 'Minimizar', expand: 'Expandir', minimumFinalGrade: 'Calificación final mínima', classwork: 'Trabajo en clase', writing: 'Escritura', speaking: 'Expresión oral', listening: 'Comprensión auditiva', reading: 'Lectura',
@@ -20,7 +20,7 @@ const translations = {
   },
   en: {
     title: 'Grade calculator', subtitle: 'First grade · Adjustable settings',
-    exam: 'Exam', book: 'Book assignments', bookShort: 'Book',
+    breakdown: 'How it is calculated', contribution: 'Contributes', points: 'points', activeWeight: 'Active weight', excluded: 'Not included', noMinimum: 'No minimum set', meetsMinimum: 'Meets minimum', belowMinimum: 'Below minimum before adjustment', minimumApplied: 'Minimum applied', calculated: 'Calculated grade', adjustment: 'Minimum adjustment', weightInput: 'Relative weight', exam: 'Exam', book: 'Book assignments', bookShort: 'Book',
     questionCount: 'Total exam questions', correctAnswers: 'Correct answers',
     minimumExamGrade: 'Minimum exam grade',
     viewResult: 'View result', collapse: 'Minimize', expand: 'Expand', minimumFinalGrade: 'Minimum final grade', classwork: 'Classwork', writing: 'Writing', speaking: 'Speaking', listening: 'Listening', reading: 'Reading',
@@ -87,6 +87,13 @@ for (const key of ['exam', 'book']) {
 }
 element('weight-controls').innerHTML = categories.map(key => `<div class="weight-row"><label for="${key}Weight"><span data-i18n="${key}"></span> <strong id="${key}Weight-value"></strong></label><input id="${key}Weight" type="number" min="0" max="100" value="${defaults[`${key}Weight`]}" inputmode="numeric"></div>`).join('');
 
+for (const key of categories) {
+  const note = document.createElement('p');
+  note.id = `${key}-contribution`;
+  note.className = 'contribution';
+  element(`${key}-title`).closest('.card').append(note);
+}
+
 // Keep the controls in the DOM so minimizing never changes an evaluation.
 document.querySelectorAll('.card').forEach(card => {
   const heading = card.querySelector('h2');
@@ -122,7 +129,8 @@ function updateCollapseLabels() {
   });
 }
 
-function render() {
+let announcementTimer;
+function render(announce = true) {
   state = normalize(state);
   const t = translations[language];
   document.documentElement.lang = language;
@@ -150,13 +158,17 @@ function render() {
   for (const key of categories) {
     const enabled = state[`${key}Enabled`];
     element(`${key}Enabled`).checked = enabled;
+    element(`${key}Enabled`).setAttribute('aria-describedby', `${key}-contribution`);
     element(`${key}Enabled`).setAttribute('aria-label', `${t.include}: ${t[key]}`);
     element(`${key}Weight`).value = state[`${key}Weight`];
     element(`${key}Weight`).disabled = !enabled;
+    element(`${key}Weight`).setAttribute('aria-label', `${t[key]}: ${t.weightInput}`);
+    element(`${key}Weight`).setAttribute('aria-describedby', `${key}Weight-value`);
     element(`${key}Weight-value`).textContent = `${enabled && totalWeight ? (state[`${key}Weight`] / totalWeight * 100).toFixed(1) : '0'}%`;
     if (extraCategories.includes(key)) {
       element(`${key}-fields`).disabled = !enabled;
       element(`${key}Grade`).value = state[`${key}Grade`];
+      element(`${key}Grade`).setAttribute('aria-label', `${t[key]}: ${t.grade}`);
       element(`${key}Grade-slider`).value = state[`${key}Grade`];
       element(`${key}Grade-slider`).setAttribute('aria-label', `${t[key]}: ${t.grade}`);
     } else {
@@ -165,11 +177,42 @@ function render() {
   }
   element('calculation-note').textContent = totalWeight ? '' : t.noCategories;
   const result = grades(state);
+  const rows = contributions(state);
+  const calculated = rows.reduce((sum, row) => sum + row.points, 0);
+  for (const key of categories) {
+    const row = rows.find(row => row.key === key);
+    element(`${key}-contribution`).textContent = row
+      ? `${t.activeWeight}: ${(row.weight * 100).toFixed(1)}% · ${t.contribution} ${row.points.toFixed(2)} / 10 ${t.points}`
+      : t.excluded;
+  }
+  const finalStatus = !totalWeight ? t.noCategories : state.minimumFinalGrade === 0 ? t.noMinimum
+    : calculated < state.minimumFinalGrade ? `${t.belowMinimum} · ${t.minimumApplied}: ${state.minimumFinalGrade.toFixed(2)}` : t.meetsMinimum;
+  const rawExam = state.correctAnswers / state.questionCount * 10;
+  element('exam-status').textContent = !state.examEnabled ? t.excluded : state.minimumExamGrade === 0 ? t.noMinimum
+    : rawExam < state.minimumExamGrade ? `${t.belowMinimum} · ${t.calculated}: ${rawExam.toFixed(2)} · ${t.minimumApplied}: ${state.minimumExamGrade.toFixed(2)}` : t.meetsMinimum;
+  element('grade-status').textContent = finalStatus;
+  element('pinned-status').textContent = totalWeight && calculated < state.minimumFinalGrade ? t.minimumApplied : t.viewResult;
+  element('grade-breakdown').replaceChildren(...rows.map(row => {
+    const line = document.createElement('li');
+    const title = document.createElement('strong');
+    title.textContent = t[row.key];
+    const detail = document.createElement('span');
+    detail.textContent = `${row.score.toFixed(2)} × ${(row.weight * 100).toFixed(1)}% = ${row.points.toFixed(2)}`;
+    line.append(title, detail);
+    return line;
+  }));
+  element('calculated-grade').textContent = totalWeight ? `${t.calculated}: ${calculated.toFixed(2)} / 10` : '';
+  element('minimum-adjustment').textContent = totalWeight && calculated < state.minimumFinalGrade
+    ? `${t.adjustment}: +${(state.minimumFinalGrade - calculated).toFixed(2)} = ${result.finalGrade.toFixed(2)} / 10` : '';
+  clearTimeout(announcementTimer);
+  if (announce) announcementTimer = setTimeout(() => {
+    element('grade-announcement').textContent = `${t.finalGrade}: ${totalWeight ? result.finalGrade.toFixed(2) + ' / 10. ' + finalStatus : t.noCategories}`;
+  }, 650);
   for (const [key, grade] of Object.entries(result)) {
     const output = element(key);
     const next = grade.toFixed(2);
     if (output.textContent !== next) {
-      output.textContent = next;
+      output.textContent = key === 'finalGrade' && !totalWeight ? '—' : next;
       if (!reducedMotion.matches) {
         output.getAnimations().forEach(animation => animation.cancel());
         output.animate([{ opacity: 0.5, transform: 'translateY(3px)' }, { opacity: 1, transform: 'translateY(0)' }],
@@ -178,7 +221,7 @@ function render() {
     }
   }
   element('pinned-grade').textContent = totalWeight ? result.finalGrade.toFixed(2) : '—';
-  element('pinned-result').setAttribute('aria-label', `${t.finalGrade}: ${totalWeight ? result.finalGrade.toFixed(2) + ' / 10' : t.noCategories}. ${t.viewResult}`);
+  element('pinned-result').setAttribute('aria-label', `${t.finalGrade}: ${totalWeight ? result.finalGrade.toFixed(2) + ' / 10. ' + finalStatus : t.noCategories}. ${t.viewResult}`);
   document.querySelector('.result-meter').style.setProperty('--grade', `${result.finalGrade * 10}%`);
   document.querySelectorAll('input[type="range"]').forEach(slider => {
     const fraction = (Number(slider.value) - Number(slider.min)) / (Number(slider.max) - Number(slider.min));
@@ -251,4 +294,4 @@ element('pinned-result').addEventListener('click', () => {
   element('final-title').tabIndex = -1;
   element('final-title').focus({ preventScroll: true });
 });
-render();
+render(false);

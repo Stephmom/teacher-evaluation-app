@@ -25,12 +25,28 @@ export function normalize(values) {
   };
 }
 
+export function contributions(values) {
+  const state = normalize(values);
+  const scores = {
+    exam: Math.max(state.minimumExamGrade, state.correctAnswers / state.questionCount * 10),
+    book: state.submittedAssignments / state.assignmentCount * 10,
+    ...Object.fromEntries(extraCategories.map(key => [key, state[`${key}Grade`]]))
+  };
+  const totalWeight = categories.reduce((sum, key) => sum + (state[`${key}Enabled`] ? state[`${key}Weight`] : 0), 0);
+  return categories.filter(key => state[`${key}Enabled`]).map(key => {
+    const weight = totalWeight ? state[`${key}Weight`] / totalWeight : 0;
+    return { key, score: scores[key], weight, points: scores[key] * weight };
+  });
+}
+
 export function grades(values) {
   const state = normalize(values);
-  const examGrade = Math.max(state.minimumExamGrade, state.correctAnswers / state.questionCount * 10);
-  const bookGrade = state.submittedAssignments / state.assignmentCount * 10;
-  const scores = { examGrade, bookGrade, ...Object.fromEntries(extraCategories.map(key => [`${key}Grade`, state[`${key}Grade`]])) };
-  const totalWeight = categories.reduce((sum, key) => sum + (state[`${key}Enabled`] ? state[`${key}Weight`] : 0), 0);
-  const weighted = categories.reduce((sum, key) => sum + (state[`${key}Enabled`] ? scores[`${key}Grade`] * state[`${key}Weight`] : 0), 0);
-  return { examGrade, bookGrade, finalGrade: totalWeight ? Math.max(state.minimumFinalGrade, weighted / totalWeight) : 0 };
+  const rows = contributions(state);
+  const weighted = rows.reduce((sum, row) => sum + row.points, 0);
+  const hasWeight = rows.some(row => row.weight > 0);
+  return {
+    examGrade: Math.max(state.minimumExamGrade, state.correctAnswers / state.questionCount * 10),
+    bookGrade: state.submittedAssignments / state.assignmentCount * 10,
+    finalGrade: hasWeight ? Math.max(state.minimumFinalGrade, weighted) : 0
+  };
 }

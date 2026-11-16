@@ -1,4 +1,4 @@
-import { defaults, grades, normalize } from './grades.js';
+import { defaults, grades, normalize, contributions } from './grades.js';
 const check = (condition, message) => { if (!condition) throw new Error(message); };
   check(grades(defaults).finalGrade.toFixed(2) === '2.90', 'Default final grade');
   check(grades(defaults).examGrade.toFixed(2) === '2.67', 'Default exam grade');
@@ -20,4 +20,11 @@ check(grades({ ...defaults, examEnabled: false, bookEnabled: false, readingEnabl
 check(grades({ ...defaults, examEnabled: false, bookEnabled: false, minimumFinalGrade: 7 }).finalGrade === 0, 'No categories ignores floor');
 check(grades({ ...defaults, readingEnabled: false, readingGrade: 10 }).finalGrade.toFixed(2) === '2.90', 'Disabled category excluded');
 check(Math.abs(grades({ ...defaults, examEnabled: false, bookWeight: 20, writingEnabled: true, writingGrade: 9, writingWeight: 20 }).finalGrade - 6) < 1e-12, 'Normalize active weights');
+
+const rows = contributions({ ...defaults, writingEnabled: true, writingGrade: 9, minimumFinalGrade: 7 });
+check(Math.abs(rows.reduce((sum, row) => sum + row.weight, 0) - 1) < 1e-12, 'Breakdown active weights sum to 100%');
+check(Math.abs(rows.reduce((sum, row) => sum + row.points, 0) - 47 / 12) < 1e-12, 'Breakdown shows weighted points before minimum adjustment');
+check(!contributions(defaults).some(row => row.key === 'reading'), 'Breakdown excludes disabled categories');
+check(contributions({ ...defaults, examWeight: 0, bookWeight: 0 }).every(row => row.points === 0), 'Zero weights produce zero contributions');
+
 console.info('PASS: all grading checks passed.');
