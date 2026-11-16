@@ -32,15 +32,30 @@ struct CalculatorView: View {
                 header
                 card {
                     sectionTitle(text("Examen", "Exam"), icon: "pencil.and.list.clipboard")
+                    Toggle(text("Incluir en la evaluación", "Include in evaluation"), isOn: $calculation.examEnabled)
                     countSlider(text("Total de preguntas del examen", "Total exam questions"),
                                 value: $calculation.questionCount, range: 1...100)
                     countSlider(text("Aciertos obtenidos", "Correct answers"),
                                 value: $calculation.correctAnswers, range: 0...calculation.questionCount,
                                 total: calculation.questionCount)
+                    HStack {
+                        Text(text("Calificación mínima del examen", "Minimum exam grade"))
+                            .font(.subheadline).foregroundStyle(.secondary)
+                        Spacer(minLength: 8)
+                        TextField(text("Mínimo", "Minimum"), value: minimumExamGradeBinding,
+                                  format: .number.precision(.fractionLength(0...1)))
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.center)
+                            .frame(width: 76)
+                            .padding(.vertical, 8)
+                            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                            .accessibilityLabel(text("Calificación mínima del examen", "Minimum exam grade"))
+                    }
                     gradeRow(text("Calificación del examen", "Exam grade"), grade: calculation.examGrade)
                 }
                 card {
                     sectionTitle(text("Trabajos del libro", "Book assignments"), icon: "book.closed")
+                    Toggle(text("Incluir en la evaluación", "Include in evaluation"), isOn: $calculation.bookEnabled)
                     countSlider(text("Total de trabajos asignados", "Total assigned work"),
                                 value: $calculation.assignmentCount, range: 1...50)
                     HStack {
@@ -56,6 +71,25 @@ struct CalculatorView: View {
                     gradeRow(text("Calificación del libro", "Book grade"), grade: calculation.bookGrade, color: bookAccent)
                 }
                 .tint(bookAccent)
+                ForEach($calculation.categories) { $category in
+                    card {
+                        Toggle(text(category.spanish, category.english), isOn: $category.enabled)
+                            .font(.headline)
+                        VStack(alignment: .leading) {
+                            Text(text("Calificación (0–10)", "Grade (0–10)"))
+                            TextField(text("Calificación", "Grade"), value: $category.grade, format: .number)
+                                .keyboardType(.decimalPad)
+                                .textFieldStyle(.roundedBorder)
+                            Slider(value: $category.grade, in: 0...10, step: 0.1)
+                                .accessibilityLabel(text(category.spanish, category.english))
+                            Text(text("Peso: ", "Weight: ") + String(format: "%.0f", category.weight))
+                            Slider(value: $category.weight, in: 0...100, step: 1)
+                                .accessibilityLabel(text("Peso", "Weight"))
+                        }
+                        .disabled(!category.enabled)
+                        .opacity(category.enabled ? 1 : 0.45)
+                    }
+                }
                 weightsCard
                 finalCard
                 actions
@@ -131,27 +165,31 @@ struct CalculatorView: View {
     private var weightsCard: some View {
         card {
             sectionTitle(text("Porcentaje de evaluación", "Evaluation weights"), icon: "slider.horizontal.3")
-            ViewThatFits(in: .horizontal) {
-                HStack {
-                    Text(text("Examen: ", "Exam: ") + "\(calculation.examWeight)%")
-                    Spacer()
-                    Text(text("Libro: ", "Book: ") + "\(100 - calculation.examWeight)%")
-                }
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(text("Examen: ", "Exam: ") + "\(calculation.examWeight)%")
-                    Text(text("Libro: ", "Book: ") + "\(100 - calculation.examWeight)%")
-                }
-            }
-            .font(.subheadline.weight(.semibold))
-            Slider(value: integerBinding($calculation.examWeight), in: 0...100, step: 1) {
-                Text(text("Porcentaje del examen", "Exam percentage"))
-            }
-            .accessibilityValue("\(calculation.examWeight)%")
+            Text(text("Examen: ", "Exam: ") + "\(calculation.examWeight)")
+            Slider(value: integerBinding($calculation.examWeight), in: 0...100, step: 1)
+                .disabled(!calculation.examEnabled)
+                .accessibilityLabel(text("Peso del examen", "Exam weight"))
+            Text(text("Libro: ", "Book: ") + "\(calculation.bookWeight)")
+            Slider(value: integerBinding($calculation.bookWeight), in: 0...100, step: 1)
+                .disabled(!calculation.bookEnabled)
+                .accessibilityLabel(text("Peso del libro", "Book weight"))
+            Text(text("Los pesos activos se ajustan automáticamente al 100%.", "Active weights automatically scale to 100%."))
+                .font(.footnote).foregroundStyle(.secondary)
         }
     }
 
     private var finalCard: some View {
         VStack(spacing: 8) {
+            HStack {
+                Text(text("Calificación final mínima", "Minimum final grade"))
+                TextField(text("Mínimo", "Minimum"), value: $calculation.minimumFinalGrade, format: .number)
+                    .keyboardType(.decimalPad).textFieldStyle(.roundedBorder).frame(width: 76)
+                    .accessibilityLabel(text("Calificación final mínima", "Minimum final grade"))
+            }
+            if calculation.activeWeight == 0 {
+                Text(text("Activa una categoría con peso mayor que 0 para calcular.", "Enable a category with a weight above 0 to calculate."))
+                    .font(.footnote)
+            }
             Text(text("Calificación final", "Final grade")).font(.headline)
             Text(formatted(calculation.finalGrade))
                 .id(calculation.finalGrade)
@@ -205,12 +243,20 @@ struct CalculatorView: View {
 
     private var copyButton: some View {
         Button {
-            UIPasteboard.general.string = """
-            \(text("Calificación del examen", "Exam grade")): \(formatted(calculation.examGrade)) (\(calculation.correctAnswers)/\(calculation.questionCount))
-            \(text("Calificación del libro", "Book grade")): \(formatted(calculation.bookGrade)) (\(calculation.submittedAssignments)/\(calculation.assignmentCount))
-            \(text("Examen", "Exam")): \(calculation.examWeight)% · \(text("Libro", "Book")): \(100 - calculation.examWeight)%
-            \(text("Calificación final", "Final grade")): \(formatted(calculation.finalGrade))/10
-            """
+            let total = calculation.activeWeight
+            var rows: [String] = []
+            if calculation.examEnabled {
+                rows.append(text("Examen", "Exam") + ": " + formatted(calculation.examGrade))
+            }
+            if calculation.bookEnabled {
+                rows.append(text("Libro", "Book") + ": " + formatted(calculation.bookGrade))
+            }
+            for category in calculation.categories where category.enabled {
+                rows.append(text(category.spanish, category.english) + ": " + formatted(min(max(category.grade, 0), 10)) + " (" + formatted(total > 0 ? category.weight / total * 100 : 0) + "%)")
+            }
+            rows.append(text("Calificación final mínima", "Minimum final grade") + ": " + formatted(min(max(calculation.minimumFinalGrade, 0), 10)))
+            rows.append(text("Calificación final", "Final grade") + ": " + formatted(calculation.finalGrade) + "/10")
+            UIPasteboard.general.string = rows.joined(separator: "\n")
             showingCopied = true
         } label: {
             Label(text("Copiar resultado", "Copy result"), systemImage: "doc.on.doc")
@@ -226,6 +272,10 @@ struct CalculatorView: View {
 
     private func integerBinding(_ value: Binding<Int>) -> Binding<Double> {
         Binding(get: { Double(value.wrappedValue) }, set: { value.wrappedValue = Int($0.rounded()) })
+    }
+
+    private var minimumExamGradeBinding: Binding<Double> {
+        Binding(get: { calculation.minimumExamGrade }, set: { calculation.minimumExamGrade = min(max($0, 0), 10) })
     }
 
     private func countSlider(

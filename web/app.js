@@ -1,4 +1,4 @@
-import { defaults, normalize, grades } from './grades.js?v=minimum-grade-1';
+import { defaults, normalize, grades, categories, extraCategories } from './grades.js?v=categories-1';
 
 const translations = {
   es: {
@@ -6,6 +6,8 @@ const translations = {
     exam: 'Examen', book: 'Trabajos del libro', bookShort: 'Libro',
     questionCount: 'Total de preguntas del examen', correctAnswers: 'Aciertos obtenidos',
     minimumExamGrade: 'Calificación mínima del examen',
+    minimumFinalGrade: 'Calificación final mínima', classwork: 'Trabajo en clase', writing: 'Escritura', speaking: 'Expresión oral', listening: 'Comprensión auditiva', reading: 'Lectura',
+    include: 'Incluir en la evaluación', grade: 'Calificación (0–10)', weightHelp: 'Los pesos activos se ajustan automáticamente al 100%.', noCategories: 'Activa una categoría con peso mayor que 0 para calcular.',
     assignmentCount: 'Total de trabajos asignados', submittedAssignments: 'Trabajos entregados',
     examGrade: 'Calificación del examen', bookGrade: 'Calificación del libro',
     weights: 'Porcentaje de evaluación', examWeight: 'Porcentaje del examen',
@@ -21,6 +23,8 @@ const translations = {
     exam: 'Exam', book: 'Book assignments', bookShort: 'Book',
     questionCount: 'Total exam questions', correctAnswers: 'Correct answers',
     minimumExamGrade: 'Minimum exam grade',
+    minimumFinalGrade: 'Minimum final grade', classwork: 'Classwork', writing: 'Writing', speaking: 'Speaking', listening: 'Listening', reading: 'Reading',
+    include: 'Include in evaluation', grade: 'Grade (0–10)', weightHelp: 'Active weights automatically scale to 100%.', noCategories: 'Enable a category with a weight above 0 to calculate.',
     assignmentCount: 'Total assigned work', submittedAssignments: 'Submitted assignments',
     examGrade: 'Exam grade', bookGrade: 'Book grade',
     weights: 'Evaluation weights', examWeight: 'Exam percentage',
@@ -64,6 +68,25 @@ reducedMotion.addEventListener('change', () => {
   if (reducedMotion.matches) document.getAnimations().forEach(animation => animation.cancel());
 });
 
+for (const key of extraCategories) {
+  const card = document.createElement('section');
+  card.className = 'card skill-card';
+  card.setAttribute('aria-labelledby', `${key}-title`);
+  card.innerHTML = `<h2 id="${key}-title" data-i18n="${key}"></h2>
+    <label class="category-toggle"><span data-i18n="include"></span><input id="${key}Enabled" type="checkbox" role="switch"></label>
+    <fieldset id="${key}-fields"><label for="${key}Grade" data-i18n="grade"></label>
+    <input id="${key}Grade" type="number" min="0" max="10" step="0.1" inputmode="decimal" value="0">
+    <input id="${key}Grade-slider" type="range" min="0" max="10" step="0.1" value="0" data-label="grade"></fieldset>`;
+  element('weight-title').closest('section').before(card);
+}
+for (const key of ['exam', 'book']) {
+  const toggle = document.createElement('label');
+  toggle.className = 'category-toggle';
+  toggle.innerHTML = `<span data-i18n="include"></span><input id="${key}Enabled" type="checkbox" role="switch" checked>`;
+  element(`${key}-title`).after(toggle);
+}
+element('weight-controls').innerHTML = categories.map(key => `<div class="weight-row"><label for="${key}Weight"><span data-i18n="${key}"></span> <strong id="${key}Weight-value"></strong></label><input id="${key}Weight" type="number" min="0" max="100" value="${defaults[`${key}Weight`]}" inputmode="numeric"></div>`).join('');
+
 function render() {
   state = normalize(state);
   const t = translations[language];
@@ -87,10 +110,25 @@ function render() {
     element(`${key}-value`).textContent = state[key];
     element(key).setAttribute('aria-valuetext', `${state[key]} ${language === 'es' ? 'de' : 'of'} ${state[total]}`);
   }
-  element('examWeight').value = state.examWeight;
-  element('examWeight').setAttribute('aria-valuetext', `${state.examWeight}%`);
-  element('examWeight-value').textContent = `${state.examWeight}%`;
-  element('bookWeight-value').textContent = `${100 - state.examWeight}%`;
+  element('minimumFinalGrade').value = state.minimumFinalGrade;
+  const totalWeight = categories.reduce((sum, key) => sum + (state[`${key}Enabled`] ? state[`${key}Weight`] : 0), 0);
+  for (const key of categories) {
+    const enabled = state[`${key}Enabled`];
+    element(`${key}Enabled`).checked = enabled;
+    element(`${key}Enabled`).setAttribute('aria-label', `${t.include}: ${t[key]}`);
+    element(`${key}Weight`).value = state[`${key}Weight`];
+    element(`${key}Weight`).disabled = !enabled;
+    element(`${key}Weight-value`).textContent = `${enabled && totalWeight ? (state[`${key}Weight`] / totalWeight * 100).toFixed(1) : '0'}%`;
+    if (extraCategories.includes(key)) {
+      element(`${key}-fields`).disabled = !enabled;
+      element(`${key}Grade`).value = state[`${key}Grade`];
+      element(`${key}Grade-slider`).value = state[`${key}Grade`];
+      element(`${key}Grade-slider`).setAttribute('aria-label', `${t[key]}: ${t.grade}`);
+    } else {
+      element(`${key}-title`).closest('section').querySelectorAll('input:not([role="switch"])').forEach(input => { input.disabled = !enabled; });
+    }
+  }
+  element('calculation-note').textContent = totalWeight ? '' : t.noCategories;
   const result = grades(state);
   for (const [key, grade] of Object.entries(result)) {
     const output = element(key);
@@ -122,7 +160,7 @@ for (const key of Object.keys(defaults)) {
   controls.forEach(control => {
     const update = () => {
       if (control.value === '' || !control.validity.valid) return;
-      state[key] = Number(control.value);
+      state[key] = control.type === 'checkbox' ? control.checked : Number(control.value);
       clearStatus();
       render();
     };
@@ -152,7 +190,9 @@ element('reset').addEventListener('click', () => {
 element('copy').addEventListener('click', async () => {
   const t = translations[language];
   const result = grades(state);
-  const summary = `${t.examGrade}: ${result.examGrade.toFixed(2)} (${state.correctAnswers}/${state.questionCount})${state.minimumExamGrade ? ` · ${t.minimumExamGrade}: ${state.minimumExamGrade}` : ''}\n${t.bookGrade}: ${result.bookGrade.toFixed(2)} (${state.submittedAssignments}/${state.assignmentCount})\n${t.exam}: ${state.examWeight}% · ${t.bookShort}: ${100 - state.examWeight}%\n${t.finalGrade}: ${result.finalGrade.toFixed(2)}/10`;
+  const scores = { ...state, ...result };
+  const totalWeight = categories.reduce((sum, key) => sum + (state[`${key}Enabled`] ? state[`${key}Weight`] : 0), 0);
+  const summary = categories.filter(key => state[`${key}Enabled`]).map(key => `${t[key]}: ${scores[`${key}Grade`].toFixed(2)} (${totalWeight ? (state[`${key}Weight`] / totalWeight * 100).toFixed(1) : 0}%)`).join('\n') + `\n${t.minimumFinalGrade}: ${state.minimumFinalGrade}\n${t.finalGrade}: ${result.finalGrade.toFixed(2)}/10${totalWeight ? '' : `\n${t.noCategories}`}`;
   clearStatus();
   try {
     await navigator.clipboard.writeText(summary);

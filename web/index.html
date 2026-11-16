@@ -21,7 +21,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <title>Calculadora de calificaciones</title>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=categories-1">
 </head>
 <body>
   <main>
@@ -78,11 +78,13 @@
       </section>
       <section class="card weight-card" aria-labelledby="weight-title">
         <h2 id="weight-title"><span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 7h6m4 0h6M4 17h10m4 0h2M10 4v6m4 4v6"/></svg></span><span data-i18n="weights">Porcentaje de evaluación</span></h2>
-        <div class="weights"><span><span data-i18n="exam">Examen</span>: <strong id="examWeight-value">30%</strong></span><span><span data-i18n="bookShort">Libro</span>: <strong id="bookWeight-value">70%</strong></span></div>
-        <input id="examWeight" type="range" min="0" max="100" value="30" data-label="examWeight">
+        <div id="weight-controls"></div>
+        <p class="help" data-i18n="weightHelp"></p>
       </section>
       <section class="card final" aria-labelledby="final-title">
         <h2 id="final-title" data-i18n="finalGrade">Calificación final</h2>
+        <div class="field minimum-grade"><label for="minimumFinalGrade" data-i18n="minimumFinalGrade">Calificación final mínima</label><input id="minimumFinalGrade" type="number" min="0" max="10" step="0.1" value="0" inputmode="decimal"></div>
+        <p id="calculation-note" role="status"></p>
         <output id="finalGrade" aria-live="polite" aria-atomic="true">2.90</output>
         <p data-i18n="scale">Escala de 0 a 10</p><div class="result-meter" aria-hidden="true"><span></span></div>
       </section>
@@ -95,6 +97,6 @@
     <p id="status" role="status"></p>
     <textarea id="copy-fallback" readonly hidden></textarea>
   </main>
-  <script type="module" src="app.js?v=minimum-grade-1"></script>
+  <script type="module" src="app.js?v=categories-1"></script>
 </body>
 </html>

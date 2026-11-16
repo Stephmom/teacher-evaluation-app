@@ -2,7 +2,7 @@
 
 [Open the online calculator](https://stephmom.github.io/teacher-evaluation-app/)
 
-A Spanish/English grade calculator on a 0–10 scale. Adjust exam questions, the minimum exam grade, assignments, and evaluation weights. Light and dark modes are available.
+A Spanish/English grade calculator on a 0–10 scale. Adjust exam questions, the minimum exam grade, assignments, and evaluation weights. Include or exclude classwork, writing, speaking, listening, and reading. Set a school minimum final grade from 0 to 10. Active category weights automatically scale to 100%. Light and dark modes are available.
 
 ## Use on iPhone
 

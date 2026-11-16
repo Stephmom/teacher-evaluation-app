@@ -195,3 +195,14 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 24px; border: 1px s
   .mark, .languages, .card, .actions, input[type="number"] { border: 1px solid CanvasText; }
   input[type="range"] { appearance: auto; -webkit-appearance: auto; }
 }
+
+.category-toggle, .weight-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.category-toggle input { width: 44px; height: 26px; accent-color: var(--accent); flex-shrink: 0; cursor: pointer; }
+fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+fieldset:disabled, input:disabled { opacity: .45; }
+.weight-row label { margin: 0; flex: 1; }
+.weight-row strong { display: inline-block; color: var(--accent); margin-left: 8px; }
+.weight-row input[type="number"] { font-size: 18px; width: 82px; }
+.help, #calculation-note { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.final .minimum-grade { width: 100%; margin-bottom: 18px; }
+.final .minimum-grade label { text-align: left; }

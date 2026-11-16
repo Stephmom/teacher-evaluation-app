@@ -2,6 +2,20 @@ import XCTest
 @testable import TeacherGradeCalculator
 
 final class GradeCalculationTests: XCTestCase {
+    func testOptionalCategoriesAndMinimum() {
+        var calculation = GradeCalculation()
+        calculation.minimumFinalGrade = 7
+        XCTAssertEqual(calculation.finalGrade, 7)
+        calculation.examEnabled = false
+        calculation.bookEnabled = false
+        XCTAssertEqual(calculation.finalGrade, 0)
+        calculation.categories[0].enabled = true
+        calculation.categories[0].grade = 9
+        XCTAssertEqual(calculation.finalGrade, 9)
+        calculation.categories[0].enabled = false
+        XCTAssertEqual(calculation.finalGrade, 0)
+    }
+
     func testGradingAndAdjustableTotals() {
         var calculation = GradeCalculation()
         XCTAssertEqual(calculation.examGrade, 2.6666666667, accuracy: 0.000001)
@@ -22,8 +36,10 @@ final class GradeCalculationTests: XCTestCase {
         calculation.questionCount = 2
         XCTAssertEqual(calculation.correctAnswers, 2)
         calculation.examWeight = 100
-        XCTAssertEqual(calculation.finalGrade, calculation.examGrade)
+        calculation.bookWeight = 0
+        XCTAssertEqual(calculation.finalGrade, calculation.examGrade, accuracy: 0.000001)
         calculation.examWeight = 0
+        calculation.bookWeight = 100
         XCTAssertEqual(calculation.finalGrade, calculation.bookGrade)
         calculation.submittedAssignments = 0
         XCTAssertEqual(calculation.finalGrade, 0)
