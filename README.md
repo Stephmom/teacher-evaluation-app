@@ -1,31 +1,23 @@
 # Teacher Grade Calculator
 
-Native SwiftUI iOS calculator with Spanish/English switching, adjustable totals, and weighted grades on a 0–10 scale. No dependencies. Supports iOS 16+.
+[Open the online calculator](https://stephmom.github.io/teacher-evaluation-app/)
 
-## Browser preview
+A Spanish/English grade calculator on a 0–10 scale. Adjust exam questions, the minimum exam grade, assignments, and evaluation weights. Light and dark modes are available.
 
-To try the calculator without a Mac, run `python3 -m http.server 8000 --bind 127.0.0.1 --directory web` from this folder and open <http://127.0.0.1:8000>. This is a separate browser implementation of the calculator, not an iOS simulator. Browser grading checks are at <http://127.0.0.1:8000/tests.html>.
+## Use on iPhone
 
-## Online deployment and iPhone Home Screen
+Open the calculator link in Safari, tap **Share → Add to Home Screen**, then tap **Add**.
 
-The GitHub Actions workflow [pages.yml](.github/workflows/pages.yml) tests the grading formulas and publishes only the web app assets to GitHub Pages after changes to `web/` on `main`.
+## Run locally
 
-In this repository's **Settings → Pages → Build and deployment → Source**, select **GitHub Actions**. A private repository requires a GitHub plan that supports private-repository Pages. Keep the repository private unless you explicitly want to change its visibility.
+From the repository folder, run:
 
-After a successful deployment, use the URL shown in the workflow's `github-pages` environment. Open that URL in Safari on your iPhone, choose **Share → Add to Home Screen**, enable **Open as Web App** if shown, and tap **Add**. An internet connection is required; offline caching is not implemented.
+```sh
+python3 -m http.server 8000 --bind 127.0.0.1 --directory web
+```
 
-The manifest and icon links use relative paths so deployment under a repository subpath works. Tests are excluded from the deployed site. Run browser checks at `/tests.html` locally, or `npm test --prefix web` when Node is installed.
+Then open <http://127.0.0.1:8000>.
 
 ## Native iOS app
 
-Open `TeacherGradeCalculator.xcodeproj` in Xcode 15+ on a Mac, select an iPhone simulator, and Run. For a physical iPhone, select your development team under Signing & Capabilities. Run checks with Product → Test.
-
-Spanish is the default; language selection persists across launches. Reset restores the example (4/15 exam, 3/10 assignments, 30% exam weight), preserving the language. Exam totals range from 1–100 and assignments from 1–50. Reducing a total clamps the earned count. Final grades use unrounded ratios; displayed grades have two decimals.
-
-The interface uses a Liquid Glass inspired appearance. Native controls use Apple's Liquid Glass when built with Xcode 26+ and running iOS 26+; older versions use SwiftUI materials. Reduced transparency uses opaque surfaces. The browser preview recreates the appearance with CSS blur, translucent layers, and glass controls, and respects reduced motion and reduced transparency preferences.
-
-Appearance follows the device's light/dark preference until you use the sun/moon button. Your explicit selection is saved independently of the language and survives reset. The web version includes gentle card entrances, slider feedback, theme transitions, and grade-change animations. Reduced Motion disables these effects; native transitions also respect that setting.
-
-Browser appearance checks are available locally at `/ui-tests.html`. Run them with both normal and reduced motion preferences to check the toggle, persistence, system defaults, translations, reset behavior, and mobile layout.
-
-Created in Linux without Xcode or Swift: the iOS build, tests, and visual verification must still run on a Mac.
+Open `TeacherGradeCalculator.xcodeproj` in Xcode 15+ on a Mac and run it on an iPhone simulator or a signed device. The app supports iOS 16+.
