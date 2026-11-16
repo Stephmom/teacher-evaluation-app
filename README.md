@@ -18,6 +18,8 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory web
 
 Then open <http://127.0.0.1:8000>.
 
-## Native iOS app
+## Deployment
 
-Open `TeacherGradeCalculator.xcodeproj` in Xcode 15+ on a Mac and run it on an iPhone simulator or a signed device. The app supports iOS 16+.
+The website is hosted on GitHub Pages. Changes to the website on `main` are published automatically by the GitHub Actions workflow.
+
+The project uses HTML, CSS, and JavaScript; no build step is required for local use.
