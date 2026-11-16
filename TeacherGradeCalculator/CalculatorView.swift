@@ -28,6 +28,7 @@ struct CalculatorView: View {
     }
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 header
@@ -90,7 +91,7 @@ struct CalculatorView: View {
                     }
                 }
                 weightsCard
-                finalCard
+                finalCard.id("final-result")
                 actions
                 Text(text(
                     "Ejemplo: Si asignaste 12 trabajos y un alumno entregó 9, su calificación del libro será 7.50. Si entregó los 12, obtiene 10.",
@@ -102,6 +103,31 @@ struct CalculatorView: View {
             .padding(20)
             .frame(maxWidth: 600)
             .frame(maxWidth: .infinity)
+        }
+        .safeAreaInset(edge: .bottom) {
+            Button {
+                collapsedCards.remove("final")
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.25)) {
+                    proxy.scrollTo("final-result", anchor: .center)
+                }
+            } label: {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(text("Calificación final", "Final grade")).font(.subheadline.weight(.semibold))
+                        Text(text("Ver resultado", "View result")).font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Text(calculation.activeWeight > 0 ? formatted(calculation.finalGrade) + " / 10" : "—")
+                        .font(.title2.bold()).monospacedDigit()
+                    Image(systemName: "arrow.up")
+                }
+                .padding(16)
+                .background(reduceTransparency ? AnyShapeStyle(Color(uiColor: .secondarySystemGroupedBackground)) : AnyShapeStyle(.regularMaterial), in: RoundedRectangle(cornerRadius: 24))
+                .padding(.horizontal, 12).padding(.bottom, 6)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(text("Calificación final", "Final grade") + ": " + (calculation.activeWeight > 0 ? formatted(calculation.finalGrade) : text("Sin evaluación", "No evaluation")))
+            .accessibilityHint(text("Ver resultado", "View result"))
         }
         .background {
             ZStack {
@@ -122,6 +148,7 @@ struct CalculatorView: View {
         .environment(\.locale, Locale(identifier: language))
         .alert(text("Resultado copiado", "Result copied"), isPresented: $showingCopied) {
             Button(text("Aceptar", "OK"), role: .cancel) { }
+        }
         }
     }
 

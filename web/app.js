@@ -6,7 +6,7 @@ const translations = {
     exam: 'Examen', book: 'Trabajos del libro', bookShort: 'Libro',
     questionCount: 'Total de preguntas del examen', correctAnswers: 'Aciertos obtenidos',
     minimumExamGrade: 'Calificación mínima del examen',
-    collapse: 'Minimizar', expand: 'Expandir', minimumFinalGrade: 'Calificación final mínima', classwork: 'Trabajo en clase', writing: 'Escritura', speaking: 'Expresión oral', listening: 'Comprensión auditiva', reading: 'Lectura',
+    viewResult: 'Ver resultado', collapse: 'Minimizar', expand: 'Expandir', minimumFinalGrade: 'Calificación final mínima', classwork: 'Trabajo en clase', writing: 'Escritura', speaking: 'Expresión oral', listening: 'Comprensión auditiva', reading: 'Lectura',
     include: 'Incluir en la evaluación', grade: 'Calificación (0–10)', weightHelp: 'Los pesos activos se ajustan automáticamente al 100%.', noCategories: 'Activa una categoría con peso mayor que 0 para calcular.',
     assignmentCount: 'Total de trabajos asignados', submittedAssignments: 'Trabajos entregados',
     examGrade: 'Calificación del examen', bookGrade: 'Calificación del libro',
@@ -23,7 +23,7 @@ const translations = {
     exam: 'Exam', book: 'Book assignments', bookShort: 'Book',
     questionCount: 'Total exam questions', correctAnswers: 'Correct answers',
     minimumExamGrade: 'Minimum exam grade',
-    collapse: 'Minimize', expand: 'Expand', minimumFinalGrade: 'Minimum final grade', classwork: 'Classwork', writing: 'Writing', speaking: 'Speaking', listening: 'Listening', reading: 'Reading',
+    viewResult: 'View result', collapse: 'Minimize', expand: 'Expand', minimumFinalGrade: 'Minimum final grade', classwork: 'Classwork', writing: 'Writing', speaking: 'Speaking', listening: 'Listening', reading: 'Reading',
     include: 'Include in evaluation', grade: 'Grade (0–10)', weightHelp: 'Active weights automatically scale to 100%.', noCategories: 'Enable a category with a weight above 0 to calculate.',
     assignmentCount: 'Total assigned work', submittedAssignments: 'Submitted assignments',
     examGrade: 'Exam grade', bookGrade: 'Book grade',
@@ -177,6 +177,8 @@ function render() {
       }
     }
   }
+  element('pinned-grade').textContent = totalWeight ? result.finalGrade.toFixed(2) : '—';
+  element('pinned-result').setAttribute('aria-label', `${t.finalGrade}: ${totalWeight ? result.finalGrade.toFixed(2) + ' / 10' : t.noCategories}. ${t.viewResult}`);
   document.querySelector('.result-meter').style.setProperty('--grade', `${result.finalGrade * 10}%`);
   document.querySelectorAll('input[type="range"]').forEach(slider => {
     const fraction = (Number(slider.value) - Number(slider.min)) / (Number(slider.max) - Number(slider.min));
@@ -240,5 +242,13 @@ element('copy').addEventListener('click', async () => {
     element('copy-fallback').select();
     element('status').textContent = t.manualCopy;
   }
+});
+element('pinned-result').addEventListener('click', () => {
+  const card = element('final-title').closest('.card');
+  const toggle = card.querySelector('.collapse-button');
+  if (toggle.getAttribute('aria-expanded') === 'false') toggle.click();
+  card.scrollIntoView({ behavior: reducedMotion.matches ? 'instant' : 'smooth', block: 'center' });
+  element('final-title').tabIndex = -1;
+  element('final-title').focus({ preventScroll: true });
 });
 render();

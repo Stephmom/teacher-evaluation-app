@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#eef1fb">
   <meta name="color-scheme" content="light dark">
   <script>
@@ -21,7 +21,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <title>Calculadora de calificaciones</title>
-  <link rel="stylesheet" href="styles.css?v=collapse-1">
+  <link rel="stylesheet" href="styles.css?v=pinned-1">
 </head>
 <body>
   <main>
@@ -97,6 +97,11 @@
     <p id="status" role="status"></p>
     <textarea id="copy-fallback" readonly hidden></textarea>
   </main>
-  <script type="module" src="app.js?v=collapse-1"></script>
+  <button id="pinned-result" class="pinned-result" type="button" aria-controls="final-title">
+    <span><span data-i18n="finalGrade">Calificación final</span><small data-i18n="viewResult">Ver resultado</small></span>
+    <strong><span id="pinned-grade">2.90</span><small> / 10</small></strong>
+    <span aria-hidden="true">↑</span>
+  </button>
+  <script type="module" src="app.js?v=pinned-1"></script>
 </body>
 </html>
