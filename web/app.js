@@ -1,4 +1,4 @@
-import { defaults, normalize, grades } from './grades.js';
+import { defaults, normalize, grades } from './grades.js?v=minimum-grade-1';
 
 const translations = {
   es: {
