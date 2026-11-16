@@ -5,6 +5,7 @@ const translations = {
     title: 'Calculadora de calificaciones', subtitle: 'Primer grado · Configuración ajustable',
     exam: 'Examen', book: 'Trabajos del libro', bookShort: 'Libro',
     questionCount: 'Total de preguntas del examen', correctAnswers: 'Aciertos obtenidos',
+    minimumExamGrade: 'Calificación mínima del examen',
     assignmentCount: 'Total de trabajos asignados', submittedAssignments: 'Trabajos entregados',
     examGrade: 'Calificación del examen', bookGrade: 'Calificación del libro',
     weights: 'Porcentaje de evaluación', examWeight: 'Porcentaje del examen',
@@ -19,6 +20,7 @@ const translations = {
     title: 'Grade calculator', subtitle: 'First grade · Adjustable settings',
     exam: 'Exam', book: 'Book assignments', bookShort: 'Book',
     questionCount: 'Total exam questions', correctAnswers: 'Correct answers',
+    minimumExamGrade: 'Minimum exam grade',
     assignmentCount: 'Total assigned work', submittedAssignments: 'Submitted assignments',
     examGrade: 'Exam grade', bookGrade: 'Book grade',
     weights: 'Evaluation weights', examWeight: 'Exam percentage',
@@ -78,6 +80,7 @@ function render() {
     element(`${key}-slider`).value = state[key];
     element(`${key}-total`).textContent = state[key];
   }
+  element('minimumExamGrade').value = state.minimumExamGrade;
   for (const [key, total] of [['correctAnswers', 'questionCount'], ['submittedAssignments', 'assignmentCount']]) {
     element(key).max = state[total];
     element(key).value = state[key];
@@ -149,7 +152,7 @@ element('reset').addEventListener('click', () => {
 element('copy').addEventListener('click', async () => {
   const t = translations[language];
   const result = grades(state);
-  const summary = `${t.examGrade}: ${result.examGrade.toFixed(2)} (${state.correctAnswers}/${state.questionCount})\n${t.bookGrade}: ${result.bookGrade.toFixed(2)} (${state.submittedAssignments}/${state.assignmentCount})\n${t.exam}: ${state.examWeight}% · ${t.bookShort}: ${100 - state.examWeight}%\n${t.finalGrade}: ${result.finalGrade.toFixed(2)}/10`;
+  const summary = `${t.examGrade}: ${result.examGrade.toFixed(2)} (${state.correctAnswers}/${state.questionCount})${state.minimumExamGrade ? ` · ${t.minimumExamGrade}: ${state.minimumExamGrade}` : ''}\n${t.bookGrade}: ${result.bookGrade.toFixed(2)} (${state.submittedAssignments}/${state.assignmentCount})\n${t.exam}: ${state.examWeight}% · ${t.bookShort}: ${100 - state.examWeight}%\n${t.finalGrade}: ${result.finalGrade.toFixed(2)}/10`;
   clearStatus();
   try {
     await navigator.clipboard.writeText(summary);
