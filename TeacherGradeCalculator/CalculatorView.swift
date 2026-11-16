@@ -122,7 +122,7 @@ struct CalculatorView: View {
                     Image(systemName: "arrow.up")
                 }
                 .padding(16)
-                .background(reduceTransparency ? AnyShapeStyle(Color(uiColor: .secondarySystemGroupedBackground)) : AnyShapeStyle(.regularMaterial), in: RoundedRectangle(cornerRadius: 24))
+                .background(colorScheme == .light ? AnyShapeStyle(Color(red: 0.86, green: 0.89, blue: 0.86)) : (reduceTransparency ? AnyShapeStyle(Color(uiColor: .secondarySystemGroupedBackground)) : AnyShapeStyle(.regularMaterial)), in: RoundedRectangle(cornerRadius: 24))
                 .padding(.horizontal, 12).padding(.bottom, 6)
             }
             .buttonStyle(.plain)
@@ -131,13 +131,17 @@ struct CalculatorView: View {
         }
         .background {
             ZStack {
-                Color(uiColor: .systemGroupedBackground)
-                LinearGradient(colors: [
+                colorScheme == .dark ? Color(uiColor: .systemGroupedBackground) : Color(red: 0.85, green: 0.87, blue: 0.86)
+                LinearGradient(colors: colorScheme == .dark ? [
                     Color(red: 0.96, green: 0.86, blue: 0.84),
                     Color(red: 0.82, green: 0.83, blue: 0.97),
                     Color(red: 0.76, green: 0.88, blue: 0.95)
+                ] : [
+                    Color(red: 0.85, green: 0.83, blue: 0.79),
+                    Color(red: 0.77, green: 0.80, blue: 0.84),
+                    Color(red: 0.75, green: 0.82, blue: 0.79)
                 ], startPoint: .topLeading, endPoint: .bottomTrailing)
-                .opacity(colorScheme == .dark ? 0.17 : 0.8)
+                .opacity(colorScheme == .dark ? 0.17 : 0.45)
             }
             .ignoresSafeArea()
         }
@@ -369,11 +373,11 @@ struct CalculatorView: View {
 
     private var glassSurface: some View {
         RoundedRectangle(cornerRadius: 30, style: .continuous)
-            .fill(reduceTransparency ? AnyShapeStyle(Color(uiColor: .secondarySystemGroupedBackground)) : AnyShapeStyle(.regularMaterial))
+            .fill(colorScheme == .light ? AnyShapeStyle(Color(red: 0.89, green: 0.90, blue: 0.87).opacity(reduceTransparency ? 1 : 0.88)) : (reduceTransparency ? AnyShapeStyle(Color(uiColor: .secondarySystemGroupedBackground)) : AnyShapeStyle(.regularMaterial)))
             .overlay {
                 RoundedRectangle(cornerRadius: 30, style: .continuous)
                     .strokeBorder(
-                        LinearGradient(colors: [.white.opacity(0.85), .white.opacity(0.15)],
+                        LinearGradient(colors: [.white.opacity(colorScheme == .dark ? 0.85 : 0.25), .white.opacity(colorScheme == .dark ? 0.15 : 0.08)],
                                        startPoint: .topLeading, endPoint: .bottomTrailing),
                         lineWidth: 1
                     )

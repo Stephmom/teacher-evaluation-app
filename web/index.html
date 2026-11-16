@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#eef1fb">
+  <meta name="theme-color" content="#d9dedc">
   <meta name="color-scheme" content="light dark">
   <script>
     (() => {
@@ -11,7 +11,7 @@
       try { preference = localStorage.getItem('calculatorTheme'); } catch { /* Storage is optional. */ }
       const dark = preference === 'dark' || (preference !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
       document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-      document.querySelector('meta[name="theme-color"]').content = dark ? '#101623' : '#eef1fb';
+      document.querySelector('meta[name="theme-color"]').content = dark ? '#101623' : '#d9dedc';
     })();
   </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -21,7 +21,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <title>Calculadora de calificaciones</title>
-  <link rel="stylesheet" href="styles.css?v=pinned-all-1">
+  <link rel="stylesheet" href="styles.css?v=soft-light-1">
 </head>
 <body>
   <main>
@@ -102,6 +102,6 @@
     <strong><span id="pinned-grade">2.90</span><small> / 10</small></strong>
     <span aria-hidden="true">↑</span>
   </button>
-  <script type="module" src="app.js?v=pinned-1"></script>
+  <script type="module" src="app.js?v=soft-light-1"></script>
 </body>
 </html>

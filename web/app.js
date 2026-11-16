@@ -51,7 +51,7 @@ try {
 function applyTheme() {
   const dark = (themePreference ?? (systemTheme.matches ? 'dark' : 'light')) === 'dark';
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-  document.querySelector('meta[name="theme-color"]').content = dark ? '#101623' : '#eef1fb';
+  document.querySelector('meta[name="theme-color"]').content = dark ? '#101623' : '#d9dedc';
   const t = translations[language];
   element('theme-toggle').setAttribute('aria-pressed', String(dark));
   element('theme-toggle').setAttribute('aria-label', t.darkMode);
