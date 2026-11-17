@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#d9dedc">
+  <meta name="theme-color" content="#dce6ed">
   <meta name="color-scheme" content="light dark">
   <script>
     (() => {
@@ -11,23 +11,23 @@
       try { preference = localStorage.getItem('calculatorTheme'); } catch { /* Storage is optional. */ }
       const dark = preference === 'dark' || (preference !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
       document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-      document.querySelector('meta[name="theme-color"]').content = dark ? '#101623' : '#d9dedc';
+      document.querySelector('meta[name="theme-color"]').content = dark ? '#101623' : '#dce6ed';
     })();
   </script>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Calificaciones">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="icon" href="icon.svg?v=handdrawn-mark-1" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png?v=grade-glass-2">
+  <link rel="icon" href="icon.svg?v=grade-glass-2" type="image/svg+xml">
   <title>Calculadora de calificaciones</title>
-  <link rel="stylesheet" href="styles.css?v=handdrawn-mark-1">
+  <link rel="stylesheet" href="styles.css?v=grade-glass-2">
 </head>
 <body>
   <main>
     <header>
       <div class="topbar">
-        <div class="mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M7.5 12.7c5.6-2.1 11.6-.6 16.4 3.1 4.2-3.8 10.9-5.2 16.2-3.3v21.2c-5.8-1.8-11.3-.2-16.2 3.5-4.8-3.8-10.8-5.2-16.4-3.3V12.7Z"/><path d="M23.9 16v20.8M11.6 18.1c3.6-.6 6.6.4 9.2 2.2M11.7 23.4c3.4-.5 6.5.5 9.1 2.2M11.7 28.7c3.3-.3 6.4.6 9 2.2M27.6 20.4c3.2-1.8 6.2-2.6 9.1-2.2M27.6 25.7c3.1-1.7 6.2-2.5 9.2-2.2M27.6 31c3.1-1.6 6.2-2.4 9.2-2.1"/><path class="mark-spark" d="m38.5 5.2.8 2.1 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8.8-2.1Z"/></svg></div>
+        <div class="mark" aria-hidden="true"><img src="apple-touch-icon.png?v=grade-glass-2" width="60" height="60" alt=""></div>
         <div class="header-controls">
           <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Modo oscuro" aria-pressed="false" title="Cambiar al modo oscuro">
             <svg class="moon-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M20.5 13A8.5 8.5 0 0 1 11 3.5 8.5 8.5 0 1 0 20.5 13Z"/></svg>
@@ -102,6 +102,6 @@
     <strong><span id="pinned-grade">2.90</span><small> / 10</small></strong>
     <span aria-hidden="true">↑</span>
   </button>
-  <script type="module" src="app.js?v=handdrawn-mark-1"></script>
+  <script type="module" src="app.js?v=grade-glass-2"></script>
 </body>
 </html>

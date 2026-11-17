@@ -7,10 +7,10 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#eef1fb",
-  "theme_color": "#eef1fb",
+  "background_color": "#dce6ed",
+  "theme_color": "#dce6ed",
   "icons": [
     { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
-    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+    { "src": "apple-touch-icon.png", "sizes": "1254x1254", "type": "image/png", "purpose": "any" }
   ]
 }
