@@ -2,7 +2,7 @@ import { defaults, normalize, grades, categories, extraCategories, contributions
 
 const translations = {
   es: {
-    title: 'Calculadora de calificaciones', subtitle: 'Primer grado · Configuración ajustable',
+    title: 'Calculadora de calificaciones',
     breakdown: 'Cómo se calcula', contribution: 'Aporta', points: 'puntos', activeWeight: 'Peso activo', excluded: 'No se incluye', noMinimum: 'Sin mínimo establecido', meetsMinimum: 'Alcanza el mínimo', belowMinimum: 'Por debajo del mínimo antes del ajuste', minimumApplied: 'Mínimo aplicado', calculated: 'Calificación calculada', adjustment: 'Ajuste al mínimo', weightInput: 'Peso relativo', exam: 'Examen', book: 'Trabajos del libro', bookShort: 'Libro',
     questionCount: 'Total de preguntas del examen', correctAnswers: 'Aciertos obtenidos',
     minimumExamGrade: 'Calificación mínima del examen',
@@ -19,7 +19,7 @@ const translations = {
     example: 'Ejemplo: Si asignaste 12 trabajos y un alumno entregó 9, su calificación del libro será 7.50. Si entregó los 12, obtiene 10.'
   },
   en: {
-    title: 'Grade calculator', subtitle: 'First grade · Adjustable settings',
+    title: 'Grade calculator',
     breakdown: 'How it is calculated', contribution: 'Contributes', points: 'points', activeWeight: 'Active weight', excluded: 'Not included', noMinimum: 'No minimum set', meetsMinimum: 'Meets minimum', belowMinimum: 'Below minimum before adjustment', minimumApplied: 'Minimum applied', calculated: 'Calculated grade', adjustment: 'Minimum adjustment', weightInput: 'Relative weight', exam: 'Exam', book: 'Book assignments', bookShort: 'Book',
     questionCount: 'Total exam questions', correctAnswers: 'Correct answers',
     minimumExamGrade: 'Minimum exam grade',

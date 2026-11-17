@@ -1,9 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="180" height="180" viewBox="0 0 180 180">
-  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#e7dff6"/><stop offset="1" stop-color="#b5dcef"/></linearGradient></defs>
-  <rect width="180" height="180" rx="40" fill="url(#bg)"/>
-  <rect x="22" y="22" width="136" height="136" rx="36" fill="white" fill-opacity=".6" stroke="white"/>
-  <g fill="none" stroke="#4b63ce" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
-    <path d="m39 76 51-26 51 26-51 26-51-26Z"/>
-    <path d="M59 88v30c21 15 41 15 62 0V88M141 76v34"/>
-  </g>
+  <defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#e4e5db"/><stop offset="1" stop-color="#c9d8d0"/></linearGradient></defs>
+  <rect width="180" height="180" rx="42" fill="url(#bg)"/>
+  <path d="M36 52c19-8 39-3 54 10 15-13 36-18 54-10v78c-20-7-39-2-54 12-16-14-35-19-54-12V52Z" fill="#f2f1e9" fill-opacity=".78" stroke="#405b69" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M90 62v77M47 68c13-2 25 1 35 8M47 88c13-2 25 1 35 8M47 108c13-2 25 1 35 8M98 76c11-7 23-10 35-8M98 96c11-7 23-10 35-8M98 116c11-7 23-10 35-8" fill="none" stroke="#405b69" stroke-width="4" stroke-linecap="round"/>
+  <path d="m139 32 3 8 8 3-8 3-3 8-3-8-8-3 8-3 3-8Z" fill="#718e78"/>
 </svg>
