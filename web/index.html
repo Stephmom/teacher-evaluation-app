@@ -21,7 +21,7 @@
   <link rel="apple-touch-icon" href="apple-touch-icon.png?v=grade-glass-2">
   <link rel="icon" href="icon.svg?v=grade-glass-2" type="image/svg+xml">
   <title>Calculadora de calificaciones</title>
-  <link rel="stylesheet" href="styles.css?v=grade-glass-2">
+  <link rel="stylesheet" href="styles.css?v=category-icons-1">
 </head>
 <body>
   <main>
@@ -81,7 +81,7 @@
         <p class="help" data-i18n="weightHelp"></p>
       </section>
       <section class="card final" aria-labelledby="final-title">
-        <h2 id="final-title" data-i18n="finalGrade">Calificación final</h2>
+        <h2 id="final-title"><span data-i18n="finalGrade">Calificación final</span></h2>
         <div class="field minimum-grade"><label for="minimumFinalGrade" data-i18n="minimumFinalGrade">Calificación final mínima</label><input id="minimumFinalGrade" type="number" min="0" max="10" step="0.1" value="0" inputmode="decimal"></div>
         <p id="calculation-note" role="status"></p>
         <output id="finalGrade" aria-live="off">2.90</output>
@@ -102,6 +102,6 @@
     <strong><span id="pinned-grade">2.90</span><small> / 10</small></strong>
     <span aria-hidden="true">↑</span>
   </button>
-  <script type="module" src="app.js?v=grade-glass-2"></script>
+  <script type="module" src="app.js?v=category-icons-1"></script>
 </body>
 </html>

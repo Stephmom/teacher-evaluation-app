@@ -72,13 +72,37 @@ for (const key of extraCategories) {
   const card = document.createElement('section');
   card.className = 'card skill-card';
   card.setAttribute('aria-labelledby', `${key}-title`);
-  card.innerHTML = `<h2 id="${key}-title" data-i18n="${key}"></h2>
+  card.innerHTML = `<h2 id="${key}-title"><span data-i18n="${key}"></span></h2>
     <label class="category-toggle"><span data-i18n="include"></span><input id="${key}Enabled" type="checkbox" role="switch"></label>
     <fieldset id="${key}-fields"><label for="${key}Grade" data-i18n="grade"></label>
     <input id="${key}Grade" type="number" min="0" max="10" step="0.1" inputmode="decimal" value="0">
     <input id="${key}Grade-slider" type="range" min="0" max="10" step="0.1" value="0" data-label="grade"></fieldset>`;
   document.querySelector('.grid').append(card);
 }
+// Small vector emblems stay crisp at every zoom level and in both themes.
+const cardIcons = {
+  exam: { color: '#318cd0', pale: '#d4f0ff', art: '<path d="M14 8h16l8 8v24a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4Z"/><path d="M30 8v8h8" class="icon-detail"/><path d="m21 29 4 4 9-11" class="icon-detail"/>' },
+  book: { color: '#158a88', pale: '#c1f4e9', art: '<path d="M24 13C18 8 10 8 5 11v27c7-3 13-1 19 3 6-4 12-6 19-3V11c-5-3-13-3-19 2Z"/><path d="M24 14v26M10 17c4-1 7 0 10 2m8 0c3-2 6-3 10-2" class="icon-detail"/>' },
+  classwork: { color: '#c47722', pale: '#ffdfaa', art: '<rect x="10" y="10" width="29" height="34" rx="5"/><rect x="17" y="6" width="15" height="8" rx="3" class="icon-front"/><path d="m17 25 3 3 5-6m-8 14h15" class="icon-detail"/>' },
+  writing: { color: '#7060c5', pale: '#e7dbff', art: '<path d="m10 32 23-23a4 4 0 0 1 6 0l2 2a4 4 0 0 1 0 6L18 40l-11 3 3-11Z"/><path d="m28 14 9 9M10 32l8 8" class="icon-detail"/>' },
+  speaking: { color: '#b34f82', pale: '#ffd9eb', art: '<rect x="18" y="6" width="14" height="25" rx="7"/><path d="M12 24a13 13 0 0 0 26 0M25 37v7m-7 0h14" class="icon-detail"/>' },
+  listening: { color: '#277cab', pale: '#cbf1ff', art: '<path d="M7 29v-5a17 17 0 0 1 34 0v5" class="icon-detail"/><rect x="5" y="25" width="10" height="17" rx="5"/><rect x="33" y="25" width="10" height="17" rx="5"/>' },
+  reading: { color: '#438b54', pale: '#d8f5bd', art: '<rect x="11" y="6" width="28" height="37" rx="5"/><path d="M29 7v14l-5-4-5 4V7" class="icon-front"/><path d="M18 31h14m-14 6h10" class="icon-detail"/>' },
+  weight: { color: '#4f75b8', pale: '#dceaff', art: '<rect x="7" y="26" width="8" height="16" rx="4"/><rect x="20" y="17" width="8" height="25" rx="4"/><rect x="33" y="7" width="8" height="35" rx="4"/>' },
+  final: { color: '#078e69', pale: '#beffe5', art: '<path d="M14 7h17l8 8v24a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4V11a4 4 0 0 1 4-4Z"/><path d="M19 18h9m-9 7h9" class="icon-detail"/><path d="m23 34 6 6 13-15" class="icon-check"/>' }
+};
+for (const [key, { color, pale, art }] of Object.entries(cardIcons)) {
+  const heading = element(`${key}-title`);
+  const icon = document.createElement('span');
+  icon.className = 'section-icon';
+  icon.setAttribute('aria-hidden', 'true');
+  icon.style.setProperty('--icon-color', color);
+  icon.style.setProperty('--icon-pale', pale);
+  icon.innerHTML = `<svg viewBox="0 0 48 48"><defs><linearGradient id="glass-${key}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${pale}"/><stop offset=".55" stop-color="${color}" stop-opacity=".7"/><stop offset="1" stop-color="${pale}"/></linearGradient></defs><g fill="url(#glass-${key})" stroke="${color}" stroke-width="1.4">${art}</g></svg>`;
+  const previous = heading.querySelector('.section-icon');
+  if (previous) previous.replaceWith(icon); else heading.prepend(icon);
+}
+
 for (const key of ['exam', 'book']) {
   const toggle = document.createElement('label');
   toggle.className = 'category-toggle';

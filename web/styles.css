@@ -42,8 +42,14 @@ h1 { margin: 22px 0 0; font-size: clamp(28px, 3vw, 36px); line-height: 1.15; let
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 18px; align-items: start; }
 .card { padding: 20px; border-radius: 26px; min-width: 0; position: relative; }
 .card > h2 { display: flex; align-items: center; gap: 10px; min-height: 48px; padding-right: 44px; margin: 0 0 12px; font-size: 17px; line-height: 1.35; font-weight: 650; letter-spacing: -.4px; }
-.section-icon { display: inline-grid; place-items: center; flex: 0 0 34px; height: 36px; color: var(--accent); border-radius: 11px; background: var(--input); border: 1px solid var(--edge); box-shadow: inset 0 1px 0 #ffffff90; }
-.section-icon svg { width: 21px; height: 21px; }
+.section-icon { display: inline-grid; place-items: center; flex: 0 0 40px; height: 40px; border-radius: 13px; background: linear-gradient(145deg, color-mix(in srgb, var(--icon-pale) 60%, transparent), color-mix(in srgb, var(--icon-color) 12%, transparent)); border: 1px solid var(--edge); box-shadow: inset 0 1px 0 #ffffffb0, inset 0 -1px 0 #ffffff35, 0 3px 8px #234c6b12; }
+.section-icon svg { width: 33px; height: 33px; overflow: visible; filter: drop-shadow(0 1px 1px #234c6b20); }
+.section-icon .icon-detail { fill: none; stroke: var(--icon-color); stroke-width: 2.7; }
+.section-icon .icon-front { fill: var(--icon-pale); stroke: var(--icon-color); }
+.section-icon .icon-check { fill: none; stroke: #057653; stroke-width: 5; paint-order: stroke; }
+:root[data-theme="dark"] .section-icon { box-shadow: inset 0 1px 0 #ffffff38, 0 3px 8px #00000020; }
+:root[data-theme="dark"] .section-icon .icon-detail { stroke: var(--icon-pale); }
+:root[data-theme="dark"] .section-icon .icon-check { stroke: #8affd0; }
 .book-card { --accent: var(--green); }
 .collapse-button { position: absolute; top: 20px; right: 14px; display: grid; place-items: center; width: 48px; height: 48px; padding: 0; border: 1px solid var(--line); border-radius: 50%; background: #ffffff20; color: var(--accent); font-size: 24px; line-height: 1; }
 .collapse-button:hover { background: var(--input); }
@@ -84,7 +90,7 @@ input:disabled { cursor: default; }
 .weight-row input[type="number"] { font-size: 18px; width: 76px; }
 .help, #calculation-note { font-size: 12px; color: var(--muted); line-height: 1.6; }
 .final { --accent: var(--green); text-align: center; background: linear-gradient(145deg, #e0f2fae0, #c6e5ecb8 55%, #bee4d8b8); }
-.final > h2 { justify-content: center; padding-left: 44px; }
+.final > h2 { justify-content: flex-start; }
 .final > .card-content { display: flex; flex-direction: column; align-items: center; width: 100%; }
 .final .minimum-grade { width: 100%; margin-bottom: 14px; }
 .final .minimum-grade label { text-align: left; }
