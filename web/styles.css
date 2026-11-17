@@ -30,7 +30,7 @@ body::after {
   pointer-events: none;
   background: radial-gradient(ellipse at 5% 10%, #503b684d, transparent 45%), radial-gradient(ellipse at 95% 8%, #353c795c, transparent 50%), radial-gradient(ellipse at 85% 90%, #22516466, transparent 48%), #101623;
 }
-main { max-width: 1000px; margin: 0 auto; padding: 42px 32px 28px; }
+main { width: 100%; min-height: 100dvh; margin: 0 auto; padding: 24px; }
 button, input { font: inherit; }
 button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 svg { fill: none; stroke: currentColor; stroke-width: 1.65; stroke-linecap: round; stroke-linejoin: round; }
@@ -287,3 +287,29 @@ input[type="range"]::-moz-range-thumb { width: 34px; height: 34px; }
 :root[data-theme="light"] input[type="range"]::-moz-range-track { background: #68766d; }
 :root[data-theme="dark"] input[type="range"]::-webkit-slider-runnable-track { background: linear-gradient(to right, var(--accent) var(--fill), #8492ac var(--fill)); }
 :root[data-theme="dark"] input[type="range"]::-moz-range-track { background: #8492ac; }
+
+/* Use the available browser width without shrinking accessible controls. */
+.grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr)); gap: 16px; }
+.card { padding: 20px; }
+.card > h2 { margin-bottom: 12px; }
+.category-toggle { margin-bottom: 12px; }
+.field + .field { margin-top: 14px; }
+.weight-row { margin-bottom: 10px; }
+.contribution { margin-top: 12px; padding-top: 10px; }
+.final h3 { margin-top: 16px; }
+.actions { margin-block: 18px 12px; }
+@media (min-width: 800px) {
+  header { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; column-gap: 18px; row-gap: 4px; align-items: center; margin-bottom: 20px; }
+  .topbar { display: contents; }
+  .mark { grid-column: 1; grid-row: 1 / 3; }
+  .header-controls { grid-column: 3; grid-row: 1 / 3; }
+  h1 { grid-column: 2; grid-row: 1; max-width: none; margin: 0; font-size: clamp(25px, 2.2vw, 34px); letter-spacing: -1px; }
+  .subtitle { grid-column: 2; grid-row: 2; margin: 0; }
+}
+@media (min-width: 1280px) {
+  .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  main { padding-inline: 14px; padding-top: 18px; }
+  .grid { grid-template-columns: minmax(0, 1fr); }
+}

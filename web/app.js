@@ -77,7 +77,7 @@ for (const key of extraCategories) {
     <fieldset id="${key}-fields"><label for="${key}Grade" data-i18n="grade"></label>
     <input id="${key}Grade" type="number" min="0" max="10" step="0.1" inputmode="decimal" value="0">
     <input id="${key}Grade-slider" type="range" min="0" max="10" step="0.1" value="0" data-label="grade"></fieldset>`;
-  element('weight-title').closest('section').before(card);
+  document.querySelector('.grid').append(card);
 }
 for (const key of ['exam', 'book']) {
   const toggle = document.createElement('label');
